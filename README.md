@@ -1,8 +1,6 @@
 Sample Work
 ==========================================
-
 Code samples from projects I have worked on.
-
 ==========================================
 
 The files here are all code samples from various projects that I have worked on throughout the years.  Some of these samples are executable and labled as so, and others are not.
