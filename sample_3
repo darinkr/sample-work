@@ -1,0 +1,217 @@
+<?
+if (strpos($_SERVER['HTTP_USER_AGENT'],'iPad') || strpos($_SERVER['HTTP_USER_AGENT'],'iPhone') || strpos($_SERVER['HTTP_USER_AGENT'],'Android') || strpos($_SERVER['HTTP_USER_AGENT'],'Mobile')) {
+	$isMobile = true;
+} else {
+	$isMobile = false;
+};
+?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Cross Point Church | Staff E-Mail Signiture Creator</title>
+<style>
+html {
+	padding:0px;
+	margin:0px;
+	font-family:Helvetica, "Helvetica Light", "Helvetica Light Oblique";
+}
+body {
+	background:#e6e5e2;
+	padding:0px;
+	margin:0px;
+	font-family:Helvetica, "Helvetica Light", "Helvetica Light Oblique";
+}
+#header {
+	background: #413c35;
+	height:100px;
+}
+.container {
+	width:900px;
+	margin:auto;
+	padding:0px;
+	position:relative;
+}
+#logo {
+	padding:15px 0px 0px 0px;
+}
+#page_title {
+	float:right;	
+	color:#e6e5e2;
+	padding-top:17px;
+	font-size:22px;
+	text-align:right;
+	text-transform:uppercase;
+	line-height:20px;
+}
+input[type=text] {
+	padding:3px 10px;
+	width:230px;
+	border:1px #413c35 solid;	
+}
+</style>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script type="text/javascript">
+
+$(document).ready(function() {
+	$('#signiture').focus();
+});
+function update_field (value, field) {
+	if (value != "") {
+		document.getElementById(field).innerHTML = value;
+	};
+};
+function update_phone (value, field, start, end) {
+	if (value != "") {
+		var str = document.getElementById(field).innerHTML;
+		var phone1 = str.substring(0,start);
+		var phone2 = value
+		var phone3 = str.substr(end,str.length);
+		document.getElementById(field).innerHTML = phone1 + phone2 + phone3;
+	};
+};
+function update_ext (value, field) {
+	if (value != "") {
+		document.getElementById(field).innerHTML = 'ext. ' + value;
+	} else {
+		document.getElementById(field).innerHTML = '';
+	};
+};
+function clear_phone(field) {
+	document.getElementById(field).innerHTML = "";
+};
+function change_url(value, field, url) {
+	if (value != "") {
+	document.getElementById(field).href= url + '/' + value;
+	};
+};
+function change_emaill(value, field) {
+	if (value != "") {
+	document.getElementById(field).href= 'mailto:' + value;
+	};
+};
+function change_url2(value, field, url) {
+	if (value != "") {
+		if (value.substring(0,4) != 'http') {
+			document.getElementById(field).href= 'http://' + value;
+		} else {
+			document.getElementById(field).href= value;
+		};
+	};
+};
+
+function selectText(element) {
+		//alert('Copy and Paste the selected text into your signiture space of your e-mail');
+	var doc = document;
+    var text = doc.getElementById(element);    
+    if (doc.body.createTextRange) {
+        var range = document.body.createTextRange();
+        range.moveToElementText(text);
+        range.select();
+    } else if (window.getSelection) {
+        var selection = window.getSelection();
+        var range = document.createRange();
+		range.selectNode(text);
+        selection.removeAllRanges();
+        selection.addRange(range);
+    }
+};
+</script>
+</head>
+
+<body>
+    <div id="header">
+    	<div class="container">
+        <div id="page_title">E-Mail<br />Signiture<br /> Generator</div>
+    	<div id="logo"><img src="http://crosspoint.tv/images/main/crosspoint-logo.svg" style="width: 166px;"/></div>
+        </div>
+    </div>
+    <div>
+    	<div class="container">
+        	<table>
+            	<tr>
+                	<td style="width:265px; padding:0px 5px; border-right=#413c35 1px solid;">
+                        <div style="background:#d6d6d5; padding:0px 0px 10px 0px; padding-left:5px;">
+                    	<div><h2>Your Info:</h2></div>
+                    	<div>Name:</div>
+                        <div><input tabindex="1" type="text" name="name" id="name_field" onkeyup="update_field(this.value,'name')" onchange="update_field(this.value,'name')" onblur="update_field(this.value,'name')" /></div>
+                    	<div>Title:</div>
+                        <div><input tabindex="2" type="text" name="title" onkeyup="update_field(this.value,'title')" onchange="update_field(this.value,'title')" onblur="update_field(this.value,'title')" /></div>
+                    	<div>Cell Phone:</div>
+                        <div><input tabindex="3" type="text" name="cell1" maxlength="3" style="width:20px;" onblur="update_phone(this.value,'cell1',0,3)" /> <input tabindex="4" type="text" name="cell2" maxlength="3" style="width:20px;"  onblur="update_phone(this.value,'cell1',4,7)" /> <input tabindex="5" type="text" name="cell3" maxlength="4" style="width:30px;" onblur="update_phone(this.value,'cell1',8,12)"/> <input type="button" style="width:200px;" onclick="javascript: clear_phone('cell')" value="hide cell phone" /></div>
+                    	<div>Office Phone:</div>
+                        <div><input tabindex="6" type="text" name="office1" maxlength="3" style="width:20px;" onblur="update_phone(this.value,'office1',0,3)" /> <input tabindex="7" type="text" name="office2" maxlength="3" style="width:20px;" onblur="update_phone(this.value,'office1',4,7)" /> <input tabindex="8" type="text" name="office3" maxlength="4" style="width:30px;"  onblur="update_phone(this.value,'office1',8,12)" /> ext.<input tabindex="8" type="text" name="office4" maxlength="4" style="width:30px;" onblur="update_ext(this.value,'ext')" onchange="update_ext(this.value,'ext')" /> <input type="button" style="width:200px;" onclick="javascript: clear_phone('office')" value="hide office phone" /></div>
+                    	<div>Tag Line:</div>
+                        <div><input tabindex="9" type="text" name="oneliner" onkeyup="update_field(this.value,'oneliner')" onchange="update_field(this.value,'oneliner')" onblur="update_field(this.value,'oneliner')" /></div>
+                    	<div>&nbsp;</div>
+                    	<div>&nbsp;</div>
+                        <div>Twitter handle:</div>
+                        <div> &nbsp; <img src="https://dl.dropboxusercontent.com/u/28204233/emailsig/twitter.png" alt="Twitter" width="20" height="20" style="margin:2px 4px 0 0;border:none; height:20px; width:20px;">/ <input tabindex="10" type="text" name="twitter" style="width:191px;" onkeyup="change_url(this.value, 'twitter', 'http://www.twitter.com')" onchange="change_url(this.value, 'twitter', 'http://www.twitter.com')" onblur="change_url(this.value, 'twitter', 'http://www.twitter.com')" /></div>
+                    	<div>Facebook handle:</div>
+                        <div> &nbsp; <img src="https://dl.dropboxusercontent.com/u/28204233/emailsig/facebook.png" alt="Facebook" width="20" height="20" style="margin:2px 4px 0 0;border:none; height:20px; width:20px;">/ <input tabindex="11" type="text" name="facebook" style="width:191px;" onkeyup="change_url(this.value, 'facebook', 'http://www.facebook.com')" onchange="change_url(this.value, 'facebook', 'http://www.facebook.com')" onblur="change_url(this.value, 'facebook', 'http://www.facebook.com')" /></div>
+                    	<div>Instagram handle:</div>
+                        <div> &nbsp; <img src="https://dl.dropboxusercontent.com/u/28204233/emailsig/instagram.png" alt="Instagram" width="20" height="20" style="margin:2px 4px 0 0;border:none; height:20px; width:20px;">/ <input tabindex="12" type="text" name="instagram" style="width:191px;" onkeyup="change_url(this.value, 'instagram', 'http://www.instagram.com')" onchange="change_url(this.value, 'instagram', 'http://www.instagram.com')" onblur="change_url(this.value, 'instagram', 'http://www.instagram.com')" /></div>
+                    	<div>Website/Staff Page Link:</div>
+                        <div><input tabindex="13" type="text" name="web" onkeyup="change_url2(this.value, 'web', '')" onchange="change_url2(this.value, 'web', '')" onblur="change_url2(this.value, 'web', '')" /></div>
+                    	<div>E-mail:</div>
+                        <div><input tabindex="14" tabindex="" type="text" name="email" onkeyup="change_emaill(this.value, 'email')" onchange="change_emaill(this.value, 'email')" onblur="change_emaill(this.value, 'email')" /></div>
+                        </div>
+                    </td>
+                    <td style="width:600px; vertical-align:top; padding:0px 5px;">
+                    	<div><h2>Instructions:</h2></div>
+                        <? if (!$isMobile) { ?>
+                        <div><span style="font-size:11px;"><em>Step 1: </em></span>Fill out the form on the left with all of your information.</div>
+                        <div><span style="font-size:11px;"><em>Step 2: </em></span>Verify that the preview below is correct.</div>
+                        <div><span style="font-size:11px;"><em>Step 3: </em></span>Click on the 'Select Signiture' button.</div>
+                        <div><span style="font-size:11px;"><em>Step 4: </em></span>Hit 'Command' + 'C' (or 'Ctrl' + 'C' if you are on a PC) to copy your signiture .</div>
+                        <div><span style="font-size:11px;"><em>Step 5: </em></span>Paste your signiture into the signiture space in your mail app.</div>
+                        <? } else { ?>
+                        <div><span style="font-size:11px;"><em>Step 1: </em></span>Fill out the form on the left with all of your information.</div>
+                        <div><span style="font-size:11px;"><em>Step 2: </em></span>Verify that the preview below is correct.</div>
+                        <div><span style="font-size:11px;"><em>Step 3: </em></span>Select the content in the white area and copy it.</div>
+                        <div><span style="font-size:11px;"><em>Step 5: </em></span>Paste your signiture into the signiture space in your mail app.</div>
+                        <? }; ?>
+                        <div>&nbsp;</div>
+                        
+                    	<div><h2>Preview:</h2></div>
+                        <div>&nbsp;</div>
+                    	<div id="signiture" style="background:#ffffff; padding:5px;">
+                        	<div>&nbsp;</div>
+                            <div style="line-height:14px; min-height:100px; width:100%; min-width:550px; margin:6px 0; padding:0px 8px 8px 8px; border-top:1px #999999 dotted; border-bottom:1px #999999 dotted; font-family:'Lucida Grande',Verdana,Arial,Sans-Serif; font-size:12px; color:#999999;">
+                            <table style="min-height:100px; line-height:14px; font-size:12px; color:#999999; min-width:550px;">
+                                <tr>
+                                    <td style="vertical-align:middle; padding-bottom:5px; width:125px;">
+                                        <a href="http://crosspoint.tv" title="crosspoint.tv" target="_blank"><img src="https://dl.dropboxusercontent.com/u/28204233/emailsig/logo.png" alt="crosspoint.tv" width="125" style="float:left;padding:2px 6px 0 0;border:none; width:125px;"></a>
+                                    </td>
+                                    <td style="padding:6px 0 6px 0; vertical-align:middle;">
+                                        <span>
+                                            <strong><span id="name" style="color:#333333; font-size:13px;">Your Name</span></strong>, <span id="title">Your Title Here</span>
+                                        </span><br>
+                                        <a href="http://crosspoint.tv" style="text-decoration:none;"><span style="font-size:11px;color:#333333;">CrossPoint.TV </span></a>
+                                        <span style="font-size:10px">
+                                            <span id="cell"> | C: <span id="cell1">615.298.4422</span></span>
+                                            <span id="office"> | O: <span id="office1">615.298.4422</span> <span id="ext"></span></span>
+                                        </span><br>
+                                        <span id="oneliner" style="font-size:10px; font-style:italic;">Everyone's Welcome, Nobody's Perfect, Anything's Possible.</span><br>
+                                        <a id="twitter" href="http://twitter.com/crosspoint_tv" target="_blank"><img src="https://dl.dropboxusercontent.com/u/28204233/emailsig/twitter.png" alt="Twitter" width="30" height="30" style="float:left;margin:2px 4px 0 0;border:none; height:30px; width:30px;"></a>
+                                        <a id="facebook" href="http://facebook.com/crosspoint.tv" target="_blank"><img src="https://dl.dropboxusercontent.com/u/28204233/emailsig/facebook.png" alt="Facebook" width="30" height="30" style="float:left;margin:2px 4px 0 0;border:none; height:30px; width:30px;"></a>
+                                        <a id="instagram" href="http://instagram.com/crosspoint_tv" target="_blank"><img src="https://dl.dropboxusercontent.com/u/28204233/emailsig/instagram.png" alt="Instagram" width="30" height="30" style="float:left;margin:2px 4px 0 0;border:none; height:30px; width:30px;"></a>
+                                        <a id="web" href="http://www.crosspoint.tv" target="_blank"><img src="https://dl.dropboxusercontent.com/u/28204233/emailsig/website.png" alt="interweb" width="30" height="30" style="float:left;margin:2px 4px 0 0;border:none; height:30px; width:30px;"></a>
+                                        <a id="email" href="mailto:info@crosspoint.tv" target="_blank"><img src="https://dl.dropboxusercontent.com/u/28204233/emailsig/mail.png" alt="email" width="30" height="30" style="float:left;margin:2px 4px 0 0;border:none; height:30px; width:30px;"></a>
+                                    </td>
+                                </tr>
+                            </table>
+                            </div>
+                    	<div>&nbsp;</div>
+                        </div>
+                    	<div>&nbsp;</div>
+                        <? if (!$isMobile) { ?>
+                        <div style="text-align:center;"><input tabindex="15" type="button" id="select_text" style="width:300px; height:40px; font-size:20px;" value="Select Signiture" touchend="selectText('signiture');" onclick="selectText('signiture');" /></div>
+						<? }; ?>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
