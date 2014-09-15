@@ -1,0 +1,184 @@
+<?php 
+require($_SERVER['DOCUMENT_ROOT'].'/includes/connection.php');
+require($_SERVER['DOCUMENT_ROOT'].'/includes/globals.php');
+
+$url = $_SERVER['REQUEST_URI'];
+$urlArray = str_word_count(strtolower(str_replace("+"," ",$url)), 1, 'àáãç0123456789-_+ ');
+$arrLen = count($urlArray);
+$isFound = 0;
+$redirect = 0;
+$what_page = 0;
+if (strpos($url,'?') > 0) {
+	$parts = explode('?',$url);
+	$url = $parts[0];
+	if (strpos($parts[1],'&') > 0) {
+		$query_array = explode('&',$parts[1]);
+		foreach ($query_array as $key) {
+			$query_parts = explode('=',$key);
+			$get[$query_parts[0]] = urldecode($query_parts[1]);
+		};
+	} else {
+			$query_parts = explode('=',$parts[1]);
+			$get[$query_parts[0]] = urldecode($query_parts[1]);
+	};
+};
+
+// FIND WHAT PAGE TO DISPLAY
+switch ($arrLen) {
+	case 1:
+		// MAIN PAGE
+		switch (strtolower($urlArray[0])) {
+			case 'catalog':
+				$what_page = 0;
+				header("HTTP/1.0 200 OK");
+				header("Status: 200 OK");
+				include($_SERVER['DOCUMENT_ROOT'].'/templates/inventory.php');
+				break;
+			case 'details':
+				$what_page = 0;
+				header("HTTP/1.0 200 OK");
+				header("Status: 200 OK");
+				include($_SERVER['DOCUMENT_ROOT'].'/templates/inventory.php');
+				break;
+			case 'contact-us':
+				$what_page = 394;
+				header("HTTP/1.0 200 OK");
+				header("Status: 200 OK");
+				include($_SERVER['DOCUMENT_ROOT'].'/templates/contact.php');
+				break;
+			case 'news':
+				$what_page = 393;
+				header("HTTP/1.0 200 OK");
+				header("Status: 200 OK");
+				include($_SERVER['DOCUMENT_ROOT'].'/templates/news.php');
+				break;
+			case 'search':
+				$what_page = 0;
+				header("HTTP/1.0 200 OK");
+				header("Status: 200 OK");
+				include($_SERVER['DOCUMENT_ROOT'].'/templates/search.php');
+				break;
+			default:
+				$strSQL = "SELECT * FROM btns WHERE btnURL LIKE '" . $urlArray[0] . "' AND btnParent = 0 and siteID = " . $site_id . ";";
+				$rs = mysqli_query($con, $strSQL);
+				while ($row = mysqli_fetch_array($rs)) {
+					$what_page = $row['btnID'];
+				};
+				header("HTTP/1.0 200 OK");
+				header("Status: 200 OK");
+				include($_SERVER['DOCUMENT_ROOT'].'/templates/main.php');
+		};
+		break;
+	case 0:
+		break;
+	default:
+		switch ($urlArray[0]) {
+			case 'contact-us':
+				$what_page = 394;
+				header("HTTP/1.0 200 OK");
+				header("Status: 200 OK");
+				include($_SERVER['DOCUMENT_ROOT'].'/templates/contact.php');
+				break;
+			case 'search':
+				$what_page = 0;
+				header("HTTP/1.0 200 OK");
+				header("Status: 200 OK");
+				include($_SERVER['DOCUMENT_ROOT'].'/templates/search.php');
+				break;
+			case 'details':
+				// ITEM DETAILS
+				$what_page = 0;
+				$x = 0;
+				
+				if (is_numeric($urlArray[1]) == true) {
+					$strSQL = "SELECT * FROM catalog_items WHERE item_id = " . $urlArray[1] . " AND catalog_id = " . $catalog_id . ";";
+					$rs = mysqli_query($con, $strSQL);
+					if (mysqli_num_rows($rs) == 0) {
+						header("HTTP/1.0 404 Not Found");
+						header("Status: 404 Not Found");
+						header("LOCATION: /404.php");
+					} else {
+						while ($row = mysqli_fetch_array($rs)) {
+							$page_array[$x]['title'] = $row['item_title'];
+							$page_array[$x]['id'] = $row['item_id'];
+							$what_page = $row['item_id'];
+							$x++;
+						};
+					};
+				} else {
+					header("HTTP/1.0 404 Not Found");
+					header("Status: 404 Not Found");
+					header("LOCATION: /404.php");
+				};
+				header("HTTP/1.0 200 OK");
+				header("Status: 200 OK");
+				include($_SERVER['DOCUMENT_ROOT'].'/templates/item_details.php');				
+				break;
+			case 'catalog':
+				// INVENTORY ITEM
+				$what_page = 0;
+				$x = 0;
+				foreach ($urlArray as $key=>$value) {
+					if ($value != 'catalog' && is_numeric($value) == false) {
+						$strSQL = "SELECT * FROM catalog_categories WHERE catalog_cat_title LIKE '" . $value . "' AND catalog_id = " . $catalog_id . ";";
+						$rs = mysqli_query($con, $strSQL);
+						if (mysqli_num_rows($rs) == 0) {
+							header("HTTP/1.0 404 Not Found");
+							header("Status: 404 Not Found");
+							header("LOCATION: /404.php");
+						} else {
+							while ($row = mysqli_fetch_array($rs)) {
+								$page_array[$x]['title'] = $row['catalog_cat_title'];
+								$page_array[$x]['id'] = $row['catalog_cat_id'];
+								$what_page = $row['catalog_cat_id'];
+								$x++;
+							};
+						};
+					} elseif (is_numeric($value) == true) {
+						$what_page = 0;
+						$item_id = $value;
+						$strSQL	= "SELECT * FROM catalog_items WHERE item_id = " . $value;
+						$rs = mysqli_query($con, $strSQL);
+						if (mysqli_num_rows($rs) == 0) {
+							header("HTTP/1.0 404 Not Found");
+							header("Status: 404 Not Found");
+							header("LOCATION: /404.php");
+						} else {
+							while ($row = mysqli_fetch_array($rs)) {
+								$page_array[$x]['title'] = $row['item_title'];
+								$page_array[$x]['id'] = $value;
+								$x++;
+							};
+						};
+					};
+				};
+				header("HTTP/1.0 200 OK");
+				header("Status: 200 OK");
+				include($_SERVER['DOCUMENT_ROOT'].'/templates/inventory.php');	
+				break;
+			default:
+				// NON-INVENTORY PAGE
+				$x = 0;
+				foreach ($urlArray as $key=>$value) {
+					$strSQL = "SELECT * FROM btns WHERE btnURL LIKE '" . $value . "' AND siteID = " . $site_id . ";";
+					$rs = mysqli_query($con, $strSQL);
+					if (mysqli_num_rows($rs) == 0) {
+						header("HTTP/1.0 404 Not Found");
+						header("Status: 404 Not Found");
+						header("LOCATION: /404.php");
+					} else {
+						while ($row = mysqli_fetch_array($rs)) {
+							$page_array[$x]['title'] = $row['btnTitle'];
+							$page_array[$x]['id'] = $row['btnID'];
+							$what_parent = $row['btnParent'];
+							$what_page = $row['btnID'];
+							$x++;
+						};
+					};
+				};
+				header("HTTP/1.0 200 OK");
+				header("Status: 200 OK");
+				include($_SERVER['DOCUMENT_ROOT'].'/templates/main.php');
+		};
+};
+?>
