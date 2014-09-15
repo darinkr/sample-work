@@ -1,0 +1,2171 @@
+<?
+$site_id = $_GET['site'];
+$theErr = "";
+if ($_GET['err'] != "") {
+	$theErr = $_GET['err'];
+};
+
+if ($site_id == "") {
+	$site_id = 0;
+} else {
+	if ($cookie['role'] == 0) {
+		$strSQL = "SELECT site.stats_url, site.siteURL, site.datecreated, site.siteName FROM site WHERE site.siteID = " . $site_id . ";";
+	} else {
+		$strSQL = "SELECT site.stats_url, site.siteURL, site.datecreated, site.siteName FROM usersitelink INNER JOIN site ON site.siteID = usersitelink.siteID WHERE usersitelink.userID = " . $user_id . " AND site.siteID = " . $site_id . ";";
+	};
+	$rs = mysqli_query($con, $strSQL);
+	if (mysqli_num_rows($rs) > 0) {
+		while ($row = mysqli_fetch_array($rs)) {
+			$site_name = $row["siteURL"];
+			$site_created = $row["dateCreated"];
+			$site_title = $row["siteName"];
+			$site_stats = $row["stats_url"];
+		};
+	} else {
+		header('LOCATION: /site/?err=101');
+	};
+};
+
+// ---------- GET SITE OPTIONS ----------
+if ($site_id != "" && $site_id != 0) {
+	$strSQL = "SELECT siteOptions FROM site WHERE siteID = " . $site_id . ";";
+	$rs = mysqli_query($con, $strSQL);
+	while ($row = mysqli_fetch_array($rs)) {
+		$site_options = explode(", ", $row["siteOptions"]);
+	};
+};
+/*
+	0 - ebar
+	1 - news
+	2 - announcements
+	3 - photo gallery
+	4 - slideshow
+	5 - newsletters
+	6 - links
+	7 - e-mail dropdown list
+	8 - list serve
+	9 - calendar
+	10 - additional admin pages
+	11 - customer reviews
+	12 - modules
+	13 - webpages
+	14 - web stats
+	15 - media manager
+	16 - catalogs
+*/
+// ---------- RE-LABEL SITE OPTIONS ----------
+$site_options['ebar'] = $site_options[0];
+$site_options['news'] = $site_options[1];
+$site_options['announcements'] = $site_options[2];
+$site_options['galleries'] = $site_options[3];
+$site_options['slideshows'] = $site_options[4];
+$site_options['newsletters'] = $site_options[5];
+$site_options['links'] = $site_options[6];
+$site_options['multi_email'] = $site_options[7];
+$site_options['list_serve'] = $site_options[8];
+$site_options['calendar'] = $site_options[9];
+$site_options['add_admin'] = $site_options[10];
+$site_options['reviews'] = $site_options[11];
+$site_options['modules'] = $site_options[12];
+$site_options['webpages'] = $site_options[13];
+$site_options['stats'] = $site_options[14];
+$site_options['media_manager'] = $site_options[15];
+$site_options['catalogs'] = $site_options[16];
+
+
+$page_title = "admin - " . $site_name;
+
+
+
+
+
+// __________________________________________________________________________________________________________
+// ______________ END GENERAL INFO __________________________________________________________________________
+// __________________________________________________________________________________________________________
+
+
+$page_id = $_GET["id"];
+if ($page_id == "") {
+	$page_id = 0;
+};
+$catalog_id =$_GET["catalog"];
+if ($catalog_id == "") {
+	$catalog_id = 0;
+};
+$category_id = $_GET["category"];
+if ($category_id == "") {
+	$category_id = 0;
+};
+$action = $_GET["action"];
+if ($action == "") {
+	$action = "";
+};
+
+$x = 0;
+$fields[$x]['col'] = "item_id";
+$fields[$x]['type'] = "integer";
+$x++;
+$fields[$x]['col'] = "item_title";
+$fields[$x]['type'] = "text";
+$x++;
+$fields[$x]['col'] = "date_added";
+$fields[$x]['type'] = "date";
+$x++;
+$fields[$x]['col'] = "date_mod";
+$fields[$x]['type'] = "date";
+$x++;
+$fields[$x]['col'] = "display";
+$fields[$x]['type'] = "checkbox";
+$x++;
+$fields[$x]['col'] = "feature";
+$fields[$x]['type'] = "checkbox";
+$x++;
+for ($i=1;$i<=20;$i++) {
+	$fields[$x]['col'] = "text_" . $i;
+	$fields[$x]['type'] = "text";
+	$x++;
+};
+for ($i=1;$i<=10;$i++) {
+	$fields[$x]['col'] = "num_" . $i;
+	$fields[$x]['type'] = "integer";
+	$x++;
+};
+for ($i=1;$i<=5;$i++) {
+	$fields[$x]['col'] = "currency_" . $i;
+	$fields[$x]['type'] = "currency";
+	$x++;
+};
+for ($i=1;$i<=5;$i++) {
+	$fields[$x]['col'] = "date_" . $i;
+	$fields[$x]['type'] = "date";
+	$x++;
+};
+for ($i=1;$i<=10;$i++) {
+	$fields[$x]['col'] = "double_" . $i;
+	$fields[$x]['type'] = "double";
+	$x++;
+};
+for ($i=1;$i<=5;$i++) {
+	$fields[$x]['col'] = "boolean_" . $i;
+	$fields[$x]['type'] = "checkbox";
+	$x++;
+};
+for ($i=1;$i<=10;$i++) {
+	$fields[$x]['col'] = "memo_" . $i;
+	$fields[$x]['type'] = "longtext";
+	$x++;
+};
+for ($i=1;$i<=5;$i++) {
+	$fields[$x]['col'] = "link_" . $i;
+	$fields[$x]['type'] = "text";
+	$x++;
+};
+for ($i=1;$i<=5;$i++) {
+	$fields[$x]['col'] = "option_" . $i;
+	$fields[$x]['type'] = "option";
+	$x++;
+};
+
+
+// CATALOG OPTIONS
+//		0 - Images used
+//		1 - 
+
+
+$strSQL = "SELECT * FROM catalogs WHERE catalog_id = " . $catalog_id . ";";
+$rs = mysqli_query($con, $strSQL);
+while ($row = mysqli_fetch_array($rs)) {
+	$catalog_name = $row['catalog_title'];
+	$cat_tree_names = "Select a category";
+	$options = explode(",", $row['options']);
+};
+$catalog_option['images'] = $options[0];
+
+$strSQL = "SELECT * FROM catalogs INNER JOIN catalog_categories ON catalogs.catalog_id = catalog_categories.catalog_id WHERE catalog_categories.catalog_id =  " . $catalog_id . " AND catalog_categories.catalog_cat_id = " . $category_id . ";";
+$rs = mysqli_query($con, $strSQL);
+while ($row = mysqli_fetch_array($rs)) {
+	$catalog_name = $row['catalog_title'];
+	$category_name = $row['catalog_cat_title'];
+	$cat_tree_ids = $row['catalog_cat_id'];
+	//$cat_tree_names = $row['catalog_cat_title'];
+	$cat_tree_names = '<a style="color:#FFFFFF;" href="?site=' . $site_id . '&page=catalog&catalog=' . $catalog_id . '&category=' . $row['catalog_cat_id'] . '">' . $row['catalog_cat_title'] . "</a>";
+	if ($row['catalog_cat_parent'] == 0) {
+		$category_main_parent = $row['catalog_cat_id'];
+		$tempVar = 0;
+	} else {
+		$category_main_parent = $row['catalog_cat_parent'];
+		$tempVar = $category_main_parent;
+	};
+};
+while ($tempVar != 0) {
+	$strSQL = "SELECT catalog_cat_parent, catalog_cat_id, catalog_cat_title FROM catalogs INNER JOIN catalog_categories ON catalogs.catalog_id = catalog_categories.catalog_id WHERE catalog_categories.catalog_id =  " . $catalog_id . " AND catalog_categories.catalog_cat_id = " . $tempVar . ";";
+	$rs = mysqli_query($con, $strSQL);
+	while ($row = mysqli_fetch_array($rs)) {
+		$cat_tree_ids = $row['catalog_cat_id'] . "," . $cat_tree_ids;
+		//$cat_tree_names = $row['catalog_cat_title'] . " - " . $cat_tree_names;
+		$cat_tree_names = '<a style="color:#FFFFFF;" href="?site=' . $site_id . '&page=catalog&catalog=' . $catalog_id . '&category=' . $row['catalog_cat_id'] . '">' . $row['catalog_cat_title'] . "</a> - " . $cat_tree_names;
+		if ($row['catalog_cat_parent'] == 0) {
+			$category_main_parent = $row['catalog_cat_id'];
+			$tempVar = 0;
+		} else {
+			$category_main_parent = $row['catalog_cat_parent'];
+			$tempVar = $category_main_parent;
+		};
+	};
+};
+$strSQL = "SELECT * FROM catalog_categories LEFT JOIN catalog_field_def ON catalog_field_def.catalog_cat_id = catalog_categories.catalog_cat_id WHERE catalog_categories.catalog_id = " . $catalog_id . " AND catalog_categories.catalog_cat_id = " . $category_main_parent . " ORDER BY catalog_cat_title ASC;";
+$rs = mysqli_query($con, $strSQL);
+while ($row = mysqli_fetch_array($rs)) {
+	// GET REQUIRED FIELDS
+	if (strpos($row['def_required'],",") > 0) {
+		$def_required = explode(",",$row['def_required']);
+	} else {
+		$def_required = $row['def_required'];
+	};
+	foreach ($fields as $key => $value) {
+		$fields[$key]['required'] = $def_required[$key];
+	};
+	// GET HIDDEN FIELDS
+	if (strpos($row['hidden_fields'],",") > 0) {
+		$def_hidden = explode(",",$row['hidden_fields']);
+	} else {
+		$def_hidden = $row['hidden_fields'];
+	};
+	foreach ($fields as $key => $value) {
+		$fields[$key]['hidden'] = $def_hidden[$key];
+	};
+	
+	// GET FIELD ORDER
+	if (!strpos($row['def_order'],",") || strpos($row['def_order'],",") > 0) {
+		$def_order = explode(",",$row['def_order']);
+	} else {
+		$def_order = $row['def_order'];
+	};
+	foreach ($fields as $key => $value) {
+		$fields[$key]['order'] = $def_order[$key];
+		if ($def_order[$key] == "")
+			$def_order[$key] = 300;
+	};
+	asort($def_order);
+	
+	// GET FIELD DEFINITIONS
+	foreach ($fields as $key => $value) {
+		$fields[$key]['def'] = $row[$fields[$key]['col']];
+	};
+	
+	// GET DIFFERENT OPTIONS
+	foreach ($fields as $key => $value) {
+		if ($fields[$key]['type'] == "option") {
+			$fields[$key]['options'] = explode("|",$row[$fields[$key]['col'] . "_options"]);
+		};
+	};
+	
+};
+switch ($_GET['action']) {
+	case 'delete_item':
+		$strSQL = "SELECT * FROM catalog_item_images_dimensions WHERE catalog_id = " . $_GET['catalog'] . ";";
+		$rs = mysqli_query($con, $strSQL);
+		$image_dim[0] = "_thumb";
+		while ($row = mysqli_fetch_array($rs)) {
+			$image_dim[$row['dimension_id']] = "_" . $row['label'];
+		};
+		// DELETE ALL IMAGES
+		$strSQL = "SELECT * FROM catalog_item_images WHERE item_id = " . $_GET['item'] . ";";
+		$rs = mysqli_query($con, $strSQL);
+		while ($row = mysqli_fetch_array($rs)) {
+			foreach ($image_dim as $key=>$value) {
+				unlink($_SERVER['DOCUMENT_ROOT'] . "/catalog_images/" . $row['image_name'] . $value . "." . $row['image_type']);
+			};
+			// DELETE IMAGE RECORD
+			$strSQL = "DELETE FROM catalog_item_images WHERE image_id = " . $row['image_id'];
+			mysqli_query($con, $strSQL);
+		};
+		// DELECT CATEGORY LINK
+		$strSQL = "DELETE FROM catalog_item_cat_link WHERE item_id = " . $_GET['item'];
+		mysqli_query($con, $strSQL);
+		// DELETE ITEM
+		$strSQL = "DELETE FROM catalog_items WHERE item_id = " . $_GET['item'];
+		mysqli_query($con, $strSQL);
+		header("LOCATION: /site/phpindex.php?site=" . $_GET['site'] . "&page=catalog&catalog=" . $_GET['catalog'] . "&category=" . $_GET['category']);
+		break;
+};
+
+if (!empty($_POST)) {
+	switch ($_GET['action']) {
+		case 'update_item':
+			$strSQL = "";
+			foreach ($fields as $key=>$value) {
+				if ($fields[$key]['col'] != 'date_added' || $fields[$key]['col'] != 'date_mod' || $fields[$key]['col'] != 'item_id' || $fields[$key]['col'] != 'date_added') {
+				if (isset($_POST[$fields[$key]['col']])) {
+					if ($strSQL != "" && $fields[$key]['type'] != "")
+						$strSQL .= ", ";
+					switch ($fields[$key]['type']) {
+						case 'text':
+						case 'longtext':
+						case 'option':
+						case 'date':
+							if ($_POST[$fields[$key]['col']] != "") {
+								$strSQL .= $fields[$key]['col'] . " = '" . htmlentities($_POST[$fields[$key]['col']], ENT_QUOTES) . "'";
+							} else {
+								$strSQL .= $fields[$key]['col'] . " = NULL";
+							};
+							break;
+						case 'double':
+						case 'checkbox':
+						case 'integer':
+						case 'currency':
+							if ($_POST[$fields[$key]['col']] != "") {
+								$strSQL .= $fields[$key]['col'] . " = " . $_POST[$fields[$key]['col']];
+							} else {
+								$strSQL .= $fields[$key]['col'] . " = NULL";
+							};
+							break;
+						default:
+					};
+				};
+				};
+			};
+			$strSQL = "UPDATE catalog_items SET " . $strSQL . " WHERE item_id = " . $_GET['item'] . ";";
+			mysqli_query($con,$strSQL);			
+			$strSQL = "UPDATE catalog_items SET date_mod = '" . gmdate('Y-m-d h:i:s') . "' WHERE item_id = " . $_GET['item'] . ";";
+			mysqli_query($con,$strSQL);			
+			$strSQL = "DELETE FROM catalog_item_cat_link WHERE item_id = " . $_GET['item'] . ";";
+			mysqli_query($con,$strSQL);	
+			foreach($_POST as $key=>$value) {
+				if (strpos($key, 'cat_') === 0) {
+					$strSQL = "INSERT INTO catalog_item_cat_link (item_id,catalog_cat_id) VALUES (" . $_GET['item'] . "," . str_replace("cat_","",$key) . ");";
+					mysqli_query($con,$strSQL);	
+				};
+			};
+			//?site=37&page=catalog&catalog=4&category=35&action=update_item&item=5"
+			header("LOCATION: /site/phpindex.php?site=" . $_GET['site'] . "&page=catalog&catalog=" . $_GET['catalog'] . "&category=" . $_GET['category']);
+			break;
+		case 'save_item':
+			$strSQL_fields = "catalog_id";
+			$strSQL_values = $catalog_id;
+			foreach ($fields as $key=>$value) {
+				if (isset($_POST[$fields[$key]['col']])) {
+					if ($strSQL != "" && $fields[$key]['type'] != "")
+						$strSQL .= ", ";
+					switch ($fields[$key]['type']) {
+						case 'text':
+						case 'longtext':
+						case 'option':
+						case 'date':
+							if ($_POST[$fields[$key]['col']] != "") {
+								$strSQL_fields .= "," . $fields[$key]['col'];
+								$strSQL_values .= ",'" . htmlentities($_POST[$fields[$key]['col']],ENT_QUOTES) . "'";
+							} else {
+								$strSQL_fields .= "," . $fields[$key]['col'];
+								$strSQL_values .= ",NULL";
+							};
+							break;
+						case 'double':
+						case 'integer':
+							if ($_POST[$fields[$key]['col']] != "") {
+								$strSQL_fields .= "," . $fields[$key]['col'];
+								$strSQL_values .= "," . $_POST[$fields[$key]['col']];
+							} else {
+								$strSQL_fields .= "," . $fields[$key]['col'];
+								$strSQL_values .= ",NULL";
+							};
+							break;
+						default:
+					};
+				};
+			};
+			$strSQL = "INSERT INTO catalog_items (" . $strSQL_fields . ") VALUES (" . $strSQL_values . ");";
+			echo $strSQL;
+			mysqli_query($con,$strSQL);
+			
+			$strSQL = "SELECT item_id FROM catalog_items ORDER BY item_id DESC LIMIT 1";
+			$rs = mysqli_query($con, $strSQL);
+			while ($row = mysqli_fetch_array($rs)) {
+				$item_id = $row['item_id'];
+			};
+			$strSQL = "UPDATE catalog_items SET date_added = '" . gmdate('Y-m-d h:i:s') . "', date_mod = '" . gmdate('Y-m-d h:i:s') . "' WHERE item_id = " . $item_id . ";";
+			mysqli_query($con,$strSQL);			
+			foreach($_POST as $key=>$value) {
+				if (strpos($key, 'cat_') === 0) {
+					$strSQL = "INSERT INTO catalog_item_cat_link (item_id,catalog_cat_id) VALUES (" . $item_id . "," . str_replace("cat_","",$key) . ");";
+					mysqli_query($con,$strSQL);	
+				};
+			};
+			
+			if ($catalog_option['images'] == 0) {
+				header("LOCATION: /site/phpindex.php?site=" . $_GET['site'] . "&page=catalog&catalog=" . $_GET['catalog'] . "&category=" . $_GET['category']);
+			} else {
+				header("LOCATION: /site/phpindex.php?site=" . $_GET['site'] . "&page=catalog&catalog=" . $_GET['catalog'] . "&category=" . $_GET['category'] . "&action=images&new=new&item=" . $item_id);
+			};
+			break;
+		case 'add_cat_def':
+			$strSQL = "INSERT INTO catalog_field_def (catalog_cat_id) VALUES (" . $_POST['skip_new_cat'] . ");";
+			mysqli_query($con, $strSQL);
+			
+			$strSQL = "SELECT catalog_cat_id FROM catalog_field_def ODER BY catalog_cat_id DESC LIMIT 1;";
+			$rs = mysqli_query($con, $strSQL);
+			while ($row = mysqli_fetch_array($rs)) {
+				
+			};
+			foreach ($_POST as $key => $value) {
+				if (strpos($key,"skip_") == false) {
+					if (strpos($key, "*") > 0) {
+						// DEFINITION FIELD
+						$field_name = explode("*",$key);
+						$field_value = $value;
+						$strSQL = "UPDATE catalog_field_def SET " . $field_name[1] . " = '" . $value . "' WHERE catalog_cat_id = " . $field_name[0] . ";";
+						mysqli_query($con, $strSQL);
+					};
+					if (strpos($key, "^") > 0) {
+						// ORDER FIELD
+						$field_name = explode("^",$key);
+						$field_value = $value;
+						$order[$field_name[0]][$field_name[1]] = $field_value;
+					};
+					if (strpos($key, "+") > 0) {
+						// REQUIRED FIELD
+						$field_name = explode("+",$key);
+						$field_value = $value;
+						if (!isset($def_required[$field_name[0]])) {
+							for ($n=0;$n<=75;$n++) {
+								$def_required[$field_name[0]][$n] = 0;
+							};
+						};
+						$def_required[$field_name[0]][$field_name[1]] = $field_value;
+					};
+					if (strpos($key, "%") > 0) {
+						// HIDDEN FIELD
+						$field_name = explode("%",$key);
+						$field_value = $value;
+						if (!isset($def_hidden[$field_name[0]])) {
+							for ($n=0;$n<=75;$n++) {
+								$def_hidden[$field_name[0]][$n] = 0;
+							};
+						};
+						$def_hidden[$field_name[0]][$field_name[1]] = $field_value;
+					};
+				};
+			};
+			foreach ($order as $key => $value) {
+				foreach ($value as $field => $new_order) {
+					if ($field != '0') {
+						$order_str .= ',' . $new_order;
+					} else {
+						$order_str = $new_order;
+					};
+				};
+				$strSQL = "UPDATE catalog_categories SET def_order = '" . $order_str . "' WHERE catalog_cat_id = " . $key;
+				mysqli_query($con, $strSQL); 
+			};
+			foreach ($def_required as $key => $value) {
+				$required_str = NULL;
+				foreach ($value as $field => $new_order) {
+					if (!is_null($required_str)) {
+						$required_str .= ',' . $new_order;
+					} else {
+						$required_str = $new_order;
+					};
+				};
+				$strSQL = "UPDATE catalog_categories SET def_required = '" . $required_str . "' WHERE catalog_cat_id = " . $key;
+				mysqli_query($con, $strSQL); 
+			};
+			foreach ($def_hidden as $key => $value) {
+				$hidden_str = NULL;
+				foreach ($value as $field => $new_order) {
+					if (!is_null($hidden_str)) {
+						$hidden_str .= ',' . $new_order;
+					} else {
+						$hidden_str = $new_order;
+					};
+				};
+				$strSQL = "UPDATE catalog_categories SET hidden_fields = '" . $hidden_str . "' WHERE catalog_cat_id = " . $key;
+				mysqli_query($con, $strSQL); 
+			};
+			echo "<script>";
+			echo 'window.location = "/site/phpindex.php?site=' . $_GET['site'] . '&page=catalog&catalog=' . $_GET['catalog'] . '"';
+			echo "</script>";
+			break;
+		case 'update_preferences':
+			$fields = $_POST['columns_used'];
+			$order = $_POST['columns_used_order'];
+			$direction = $_POST['columns_used_order_direction'];
+			
+/*			$_COOKIE['VIPControlPanel']['columns']
+				category id
+					$col_view[0]['col']
+					$col_view[0]['def']
+					$col_view[0]['type']
+					
+					$col_view[1]['col']
+					$col_view[1]['def']
+					$col_view[1]['type']
+					
+					$col_view[2]['col']
+					$col_view[2]['def']
+					$col_view[2]['type']
+					
+			$_COOKIE['VIPControlPanel']['order']
+				category id
+					$col_order[0]['col']
+					$col_order[0]['def']
+					$col_order[0]['order']
+
+					$col_order[1]['col']
+					$col_order[1]['def']
+					$col_order[1]['order']
+
+					$col_order[2]['col']
+					$col_order[2]['def']
+					$col_order[2]['order']
+ */
+			$x = 0;
+			foreach ($order as $key=>$value) {
+				$field = explode("*",$value);
+				$order_arr[$x]['col'] = $field[0];
+				$order_arr[$x]['def'] = $field[1];
+				$order_arr[$x]['order'] = $direction[$key];
+				$x++;
+			};
+			
+			$x = 0;
+			foreach ($fields as $key=>$value) {
+				$field = explode("*",$value);
+				$field_arr[$x]['col'] = $field[0];
+				$field_arr[$x]['def'] = $field[1];
+				$field_arr[$x]['type'] = $field[2];
+				$x++;
+			};
+			$preferences = unserialize($_COOKIE["VIPControl"]["preferences"]);
+			$preferences[$category_id]['order'] = $order_arr;
+			$preferences[$category_id]['fields'] = $field_arr;
+			
+			$strSQL = "SELECT * FROM catalog_categories_preferences WHERE user_id = " . $_COOKIE['VIPControl']['userID'] . " AND category_id = " . $category_id . ";";
+			$rs = mysqli_query($con, $strSQL);
+			if (mysqli_num_rows($rs) > 0) {
+				$strSQL = "UPDATE catalog_categories_preferences SET preferences = '" . urlencode(serialize($preferences)) . "' WHERE user_id = " . $_COOKIE['VIPControl']['userID'] . " AND category_id = " . $category_id . ";";
+			} else {
+				$strSQL = "INSERT INTO catalog_categories_preferences (user_id, category_id, preferences) VALUES (" . $_COOKIE['VIPControl']['userID'] . "," . $category_id . ",'" . urlencode(serialize($preferences)) . "');";
+			};
+			mysqli_query($con, $strSQL); 
+			header("LOCATION:" . $_SERVER['PHP_SELF'] . '?site=' . $_GET['site'] . '&page=catalog&catalog=' . $_GET['catalog'] .'&category=' . $_GET['category']);
+			//save_serial_cookie("VIPControl[preferences]", $preferences, $_SERVER['PHP_SELF'] . '?site=' . $_GET['site'] . '&page=catalog&catalog=' . $_GET['catalog'] .'&category=' . $_GET['category']);
+			break;
+		case 'update_cat_def':
+			foreach ($_POST as $key => $value) {
+				if (strpos($key,"skip_") == false) {
+					if (strpos($key, "*") > 0) {
+						// DEFINITION FIELD
+						$field_name = explode("*",$key);
+						$field_value = $value;
+						$strSQL = "UPDATE catalog_field_def SET " . $field_name[1] . " = '" . $value . "' WHERE catalog_cat_id = " . $field_name[0] . ";";
+						mysqli_query($con, $strSQL);
+					};
+					if (strpos($key, "^") > 0) {
+						// ORDER FIELD
+						$field_name = explode("^",$key);
+						$field_value = $value;
+						$order[$field_name[0]][$field_name[1]] = $field_value;
+					};
+					if (strpos($key, "+") > 0) {
+						// REQUIRED FIELD
+						$field_name = explode("+",$key);
+						$field_value = $value;
+						if (!isset($def_required[$field_name[0]])) {
+							for ($n=0;$n<=79;$n++) {
+								$def_required[$field_name[0]][$n] = 0;
+							};
+						};
+						$def_required[$field_name[0]][$field_name[1]] = $field_value;
+					};
+					if (strpos($key, "%") > 0) {
+						// HIDDEN FIELD
+						$field_name = explode("%",$key);
+						$field_value = $value;
+						if (!isset($def_hidden[$field_name[0]])) {
+							for ($n=0;$n<=79;$n++) {
+								$def_hidden[$field_name[0]][$n] = 0;
+							};
+						};
+						$def_hidden[$field_name[0]][$field_name[1]] = $field_value;
+					};
+				};
+			};
+			foreach ($order as $key => $value) {
+				foreach ($value as $field => $new_order) {
+					if ($field != '0') {
+						$order_str .= ',' . $new_order;
+					} else {
+						$order_str = $new_order;
+					};
+				};
+				$strSQL = "UPDATE catalog_categories SET def_order = '" . $order_str . "' WHERE catalog_cat_id = " . $key;
+				echo $strSQL . "<br>";
+				mysqli_query($con, $strSQL); 
+			};
+			foreach ($def_required as $key => $value) {
+				$required_str = NULL;
+				foreach ($value as $field => $new_order) {
+					if (!is_null($required_str)) {
+						$required_str .= ',' . $new_order;
+					} else {
+						$required_str = $new_order;
+					};
+				};
+				$strSQL = "UPDATE catalog_categories SET def_required = '" . $required_str . "' WHERE catalog_cat_id = " . $key;
+				echo $strSQL . "<br>";
+				mysqli_query($con, $strSQL); 
+			};
+			foreach ($def_hidden as $key => $value) {
+				$hidden_str = NULL;
+				foreach ($value as $field => $new_order) {
+					if (!is_null($hidden_str)) {
+						$hidden_str .= ',' . $new_order;
+					} else {
+						$hidden_str = $new_order;
+					};
+				};
+				$strSQL = "UPDATE catalog_categories SET hidden_fields = '" . $hidden_str . "' WHERE catalog_cat_id = " . $key;
+				echo $strSQL . "<br>";
+				mysqli_query($con, $strSQL); 
+			};
+			header("LOCATION:" . $_SERVER['PHP_SELF'] . '?site=' . $_GET['site'] . '&page=catalog&catalog=' . $_GET['catalog'] .'&category=' . $_GET['category']);
+			break;
+		default:
+		
+	};
+};
+
+$strSQL = "SELECT * FROM catalog_categories_preferences WHERE user_id = " . $_COOKIE['VIPControl']['userID'] . " AND category_id = " . $category_id . ";";
+$rs = mysqli_query($con, $strSQL);
+while ($row = mysqli_fetch_array($rs)) {
+	$preferences = unserialize(urldecode($row['preferences']));
+};
+	if ($category_id == "" || !isset($preferences[$category_id])) {
+		// no calumn settings were found for this category
+		$col_view[1]['col'] = 'item_title';
+		$col_view[1]['def'] = 'Title';
+		$col_view[1]['type'] = 'text';
+		
+		$col_view[2]['col'] = 'date_added';
+		$col_view[2]['def'] = 'Date Added';
+		$col_view[2]['type'] = 'date';
+		
+		$col_view[3]['col'] = 'date_mod';
+		$col_view[3]['def'] = 'Date Modified';
+		$col_view[3]['type'] = 'date';
+		
+		$col_view[0]['col'] = 'item_id';
+		$col_view[0]['def'] = 'Item ID';
+		$col_view[0]['type'] = 'int';
+	
+		$col_view[6]['col'] = 'display';
+		$col_view[6]['def'] = 'Display';
+		$col_view[6]['type'] = 'checkbox';
+		
+		$col_view[7]['col'] = 'feature';
+		$col_view[7]['def'] = 'Feature';
+		$col_view[7]['type'] = 'checkbox';
+	
+		$col_order[0]['col'] = 'date_added';
+		$col_order[0]['def'] = 'Date Added';
+		$col_order[0]['order'] = 'ASC';
+		
+		$col_order[1]['col'] = 'item_title';
+		$col_order[1]['def'] = 'Title';
+		$col_order[1]['order'] = 'DESC';
+	} else {
+		$col_view = $preferences[$category_id]['fields'];
+		$col_order = $preferences[$category_id]['order'];
+	};
+
+if (is_null($col_view)) {
+	$col_view[1]['col'] = 'item_title';
+	$col_view[1]['def'] = 'Title';
+	$col_view[1]['type'] = 'text';
+	
+	$col_view[2]['col'] = 'date_added';
+	$col_view[2]['def'] = 'Date Added';
+	$col_view[2]['type'] = 'date';
+	
+	$col_view[3]['col'] = 'date_mod';
+	$col_view[3]['def'] = 'Date Modified';
+	$col_view[3]['type'] = 'date';
+	
+	$col_view[0]['col'] = 'item_id';
+	$col_view[0]['def'] = 'Item ID';
+	$col_view[0]['type'] = 'int';
+	
+	$col_view[6]['col'] = 'display';
+	$col_view[6]['def'] = 'Display';
+	$col_view[6]['type'] = 'checkbox';
+	
+	$col_view[7]['col'] = 'feature';
+	$col_view[7]['def'] = 'Feature';
+	$col_view[7]['type'] = 'checkbox';
+};
+if (is_null($col_order)) {
+	$col_order[0]['col'] = 'date_added';
+	$col_order[0]['def'] = 'Date Added';
+	$col_order[0]['order'] = 'ASC';
+	
+	$col_order[1]['col'] = 'item_title';
+	$col_order[1]['def'] = 'Title';
+	$col_order[1]['order'] = 'DESC';
+};
+ksort($col_view);
+ksort($col_order);
+
+
+
+
+
+//print_r($fields);
+
+
+// __________________________________________________________________________________________________________
+// ______________ BEGIN PAGE CONTENT ________________________________________________________________________
+// __________________________________________________________________________________________________________
+
+
+// ----- HEADER -----
+include ($_SERVER['DOCUMENT_ROOT'] . '/templates/header.php'); ?>
+<!-- content -->
+<div id="content">
+	<div id="wrapper">
+		<div id="navigation" class="maxheight">
+			<div class="box maxheight">
+				<div class="border-top maxheight">
+					<div class="border-right maxheight" id="boxleft">
+						<div class="inner">
+<?							if ($site_name == "") { ?>
+                            	<h3>SITE</h3>
+<?							} else {
+                            	if (strlen($site_name) > 22) { ?>
+                                	<h3><? echo substr($site_name, 22) . "..." ?></h3>
+<?								} else { ?>
+                                	<h3><? echo $site_name ?></h3>
+<?								}; ?>
+<?							}; ?>
+                           	<div class="indent">
+                            	<? include ($_SERVER['DOCUMENT_ROOT'] . '/script/_leftMenu_site.php'); ?>
+                            </div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+        <div class="content">
+            <div class="indent" style="padding-top:0px;" >
+<?			if ($site_id == 0) { ?>
+                    <h2>YOUR WEBSITES</h2>
+                    <div class="indent">
+	<?					if ($theErr != 0) { ?>
+                            <div style="color:red; text-align:center;">
+    <?							switch ($theErr) {
+                                    case 101:
+                                        echo "Permission Denied.";
+                                        break;
+                                    default:
+                                        echo "An Error Occured.";
+                                }; ?>
+                            </div>
+    <?					}; ?>
+    				<? include ($_SERVER['DOCUMENT_ROOT'] . '/script/_siteDiv.php'); ?>
+                    </div>
+<?					} else {
+	
+// ---------- BEGIN PAGE CONTENT ---------- ?>
+
+<script>
+
+// $action = $_GET['action'];
+// $table = $_GET['table'];
+// $field = $_GET['field'];
+// $id = $_GET['id'];
+// $id_field = $_GET['id_field'];
+// $data = unserialize($_GET['data']);
+
+function save_cat_def (site,table,field,id_field,id,data) {
+	
+	xmlhttp=new XMLHttpRequest();
+	
+	var xhr = new XMLHttpRequest();
+	xhr.onreadystatechange = function() {
+		if (xhr.readyState == 4) {
+			switch (xhr.responseText) {
+				case "0":
+					break;
+				default:
+					alert(xhr.responseText);
+			};
+		};
+	};
+	xhr.open('GET', '/site/_save_database.php?site='+site+'&action=update_text&table='+table+'&field='+field+'&id_field='+id_field+'&id='+id+'&data='+encodeURIComponent(data), true);
+	xhr.send(null);
+};
+
+function save_cat_order (site,id,x,data) {
+	
+	xmlhttp=new XMLHttpRequest();
+	
+	var xhr = new XMLHttpRequest();
+	xhr.onreadystatechange = function() {
+		if (xhr.readyState == 4) {
+			switch (xhr.responseText) {
+				case "0":
+					break;
+				default:
+					alert(xhr.responseText);
+			};
+		};
+	};
+	xhr.open('GET', '/site/_save_database.php?site='+site+'&action=update_order&x='+x+'&id='+id+'&data='+encodeURIComponent(data), true);
+	xhr.send(null);
+};
+
+function save_cat_boolean (site,field,id,x,data) {
+	
+	if (data.checked) {
+		boolean = '1';
+	} else {
+		boolean = '0';
+	};
+	xmlhttp=new XMLHttpRequest();
+	
+	var xhr = new XMLHttpRequest();
+	xhr.onreadystatechange = function() {
+		if (xhr.readyState == 4) {
+			switch (xhr.responseText) {
+				case "0":
+					break;
+				default:
+					alert(xhr.responseText);
+			};
+		};
+	};
+	xhr.open('GET', '/site/_save_database.php?site='+site+'&action=update_boolean&field='+field+'&x='+x+'&id='+id+'&data='+encodeURIComponent(boolean), true);
+	xhr.send(null);
+};
+
+</script>
+<table style="width:100%; font-size:12px; margin:0px; padding:0px;">
+<tr>
+<td style="background:#F2F2F2; border: 1px #999 solid; width:180px; vertical-align:top;">
+	<h2>CATEGORIES
+    <? if ($cookie['role'] == 0) { ?>
+	<a href="?site=<? echo $site_id ?>&page=catalog&catalog=<? echo $catalog_id ?>&category=<? echo $category_id ?>&action=edit_categories">
+    	<img src="/images/edit.png" style="height:25px; float:right; margin-top:-5px;" /></a>
+    <a href="?site=<? echo $site_id ?>&page=catalog&catalog=<? echo $catalog_id ?>&category=<? echo $category_id ?>&action=add_category">
+    	<img src="/images/add.png" style="height:25px; float:right; margin-top:-5px;" /></a>
+    <? }; ?>
+    </h2>
+<div>&nbsp;</div>
+<?
+function loop_categories($parent) {
+	global $catalog_id, $con, $site_id, $catalog_id, $category_id;
+	$strSQL = "SELECT * FROM catalog_categories WHERE catalog_id = " . $catalog_id . " AND catalog_cat_parent =" . $parent . " ORDER BY catalog_cat_title ASC;";
+	$rs2 = mysqli_query($con,$strSQL);
+	$count = 0;
+	while ($row = mysqli_fetch_array($rs2)) {
+		$strSQL = "SELECT count(item_id) AS count FROM catalog_item_cat_link WHERE catalog_cat_id = " . $row["catalog_cat_id"];
+		$rs3 = mysqli_query($con, $strSQL);
+		while ($row3 = mysqli_fetch_array($rs3)){
+			$count = $row3['count']; 
+		}; ?>
+		<div style="padding:0 0 0 15px; border:0px #999 solid;">
+		<a style="text-decoration:none;" href="?site=<? echo $site_id ?>&page=catalog&catalog=<? echo $catalog_id ?>&category=<? echo $row["catalog_cat_id"] ?>"><div style="padding:2px 5px;">- <? echo $row["catalog_cat_title"] ?> &nbsp;[<? echo $count ?>]<? if ($category_id == $row["catalog_cat_id"]) {?><div style="text-decoration:none; color:#44c0ea; margin-top:-1px; float:right;">&nbsp;&#9664;</div><? }; ?></div></a>
+<?      loop_categories($row["catalog_cat_id"]); ?>
+		</div>
+<?	};
+};
+function loop_categories_checkbox($parent) {
+	global $catalog_id, $con, $site_id, $catalog_id, $category_id;
+	$strSQL = "SELECT * FROM catalog_categories WHERE catalog_id = " . $catalog_id . " AND catalog_cat_parent =" . $parent . " ORDER BY catalog_cat_title ASC;";
+	$strSQL = "SELECT catalog_categories.catalog_cat_id, catalog_cat_title, item_id FROM catalog_categories LEFT JOIN (SELECT * FROM catalog_item_cat_link WHERE item_id = " . $_GET['item'] . ") AS catalog_item_cat ON catalog_categories.catalog_cat_id = catalog_item_cat.catalog_cat_id WHERE catalog_cat_parent = " . $parent . " AND catalog_id = " . $catalog_id . " ORDER BY catalog_cat_title ASC;";
+	$rs2 = mysqli_query($con,$strSQL);
+	$count = 0;
+	while ($row2 = mysqli_fetch_array($rs2)) {
+		if ($row2['item_id'] != $_GET['item']) {?>
+	    	<div style="padding-left:15px;"><input type="checkbox" value="1" name="cat_<? echo $row2['catalog_cat_id']; ?>" /> &nbsp; <? echo $row2['catalog_cat_title']; ?>
+<?		} else { ?>
+		    <div style="padding-left:15px;"><input type="checkbox" value="1" name="cat_<? echo $row2['catalog_cat_id']; ?>" checked="checked" /> &nbsp; <? echo $row2['catalog_cat_title']; ?>
+<?		}; ?>
+		</div>
+<?	};
+    loop_categories($row2["catalog_cat_id"]);
+};
+?>
+<? $strSQL = "SELECT * FROM catalog_categories WHERE catalog_id = " . $catalog_id . " AND catalog_cat_parent = 0 ORDER BY catalog_cat_title ASC;";
+	$rs = mysqli_query($con, $strSQL);
+	while ($row = mysqli_fetch_array($rs)) {
+		$parent = $row["catalog_cat_id"]; ?>
+	<div style="border:1px #999 solid; margin:0px 5px 20px 5px; background:#FFFFFF;">
+		<a style="text-decoration:none;" href="?site=<? echo $site_id ?>&page=catalog&catalog=<? echo $catalog_id ?>&category=<? echo $row["catalog_cat_id"] ?>"><div style="padding:2px 5px;"><? echo $row["catalog_cat_title"] ?><? if ($category_id == $row["catalog_cat_id"]) {?><div style="text-decoration:none; color:#44c0ea; margin-top:0px; float:right;">&nbsp;&#9664;</div><? }; ?></div></a>
+<?		loop_categories($row["catalog_cat_id"]); ?>
+    </div>
+<?	}; ?>
+<?	$strSQL = "SELECT * FROM catalog_items LEFT JOIN (SELECT catalog_item_cat_link.catalog_cat_id, catalog_id, item_id FROM catalog_item_cat_link INNER JOIN catalog_categories ON catalog_categories.catalog_cat_id = catalog_item_cat_link.catalog_cat_id) AS categories ON categories.item_id = catalog_items.item_id WHERE isnull(categories.catalog_cat_id) AND catalog_items.catalog_id = " . $catalog_id . " ORDER BY catalog_items.date_mod DESC;";
+	$rs = mysqli_query($con, $strSQL);
+	if (mysqli_num_rows($rs) > 0) { ?>
+	<div style="border:1px #999 solid; margin:0px 5px 20px 5px; background:#FFFFFF;">
+		<a href="?site=<? echo $site_id ?>&page=catalog&catalog=<? echo $catalog_id ?>&action=uncatagorized"><div style="padding:2px 5px;">Uncategorized<? if ($get['action'] == "uncategorized") {?><div style="text-decoration:none; color:#44c0ea; margin-top:0px; float:right;">&nbsp;&#9664;</div><? }; ?></div></a>
+    </div>
+<?	}; ?>
+</td>
+<td style="vertical-align:top; padding-left:10px;">
+<?
+//---------------------- BEGIN CONTENT AREA ------------------------>
+switch ($_GET['action']) {
+	case "edit_item": ?>
+<?		$strSQL = "SELECT * FROM catalog_items WHERE item_id = " . $_GET['item'] . ";";
+		$rs = mysqli_query($con, $strSQL);
+		while ($row = mysqli_fetch_array($rs)) {
+			$item_title = $row['item_title'];
+		}; ?>
+        <h2><? echo $catalog_name . " - " . $cat_tree_names . " - " . $item_title . " | EDIT ITEM"; ?></h2>
+<?		$strSQL = "SELECT * FROM catalog_items WHERE item_id = " . $_GET['item'];
+		$rs = mysqli_query($con, $strSQL);
+		while ($row = mysqli_fetch_array($rs)) {
+			// ?site=37&page=catalog&catalog=4&category=35&action=update_item&item=5" ?>
+        	<form id="edit_item" action="?site=<? echo $site_id ?>&page=catalog&catalog=<? echo $catalog_id ?>&category=<? echo $category_id ?>&action=update_item&item=<? echo $_GET['item'] ?>" method="post">
+        	<table style="font-size:12px; margin:auto; border-collapse: separate; border-spacing: 5px;">
+				<tr>
+                    <td style="text-align:right; vertical-align:top;">Category: &nbsp; </td>
+                    <td>
+                    	<select style="width:300px; border: 2px #a70000 solid;" onchange="changePage(this.form)" name="choice" id="choice">
+							<option>-- SELECT ONE --</option>
+<?						$strSQL = "SELECT * FROM catalog_categories WHERE catalog_cat_parent = 0 AND catalog_id = " . $catalog_id . " ORDER BY catalog_cat_title ASC;";
+						$rs2 = mysqli_query($con, $strSQL); ?>
+<?						while ($row2 = mysqli_fetch_array($rs2)) { ?>
+							<option value="/site/phpindex.php?site=<? echo $site_id; ?>&page=catalog&catalog=<? echo $catalog_id ?>&category=<? echo $row2['catalog_cat_id']; ?>&action=edit_item&item=<? echo $_GET['item'] ?>" <? if ($category_main_parent == $row2['catalog_cat_id']) { ?> selected="selected" <? }; ?>><? echo $row2['catalog_cat_title']; ?></option>
+<?						}; ?>
+						</select>
+                    </td>
+                </tr>
+				<tr>
+                    <td style="text-align:right; vertical-align:top;">Sub Category: &nbsp; </td>
+                    <td>
+                    	<div style="border: 2px #a70000 solid; line-height:18px; padding:4px;">
+<?						$strSQL = "SELECT catalog_categories.catalog_cat_id, catalog_cat_title, item_id FROM catalog_categories LEFT JOIN (SELECT * FROM catalog_item_cat_link WHERE item_id = " . $_GET['item'] . ") AS catalog_item_cat ON catalog_categories.catalog_cat_id = catalog_item_cat.catalog_cat_id WHERE catalog_cat_parent = " . $category_main_parent . " AND catalog_id = " . $catalog_id . " ORDER BY catalog_cat_title ASC;";
+						$rs2 = mysqli_query($con, $strSQL);
+						while ($row2 = mysqli_fetch_array($rs2)) {
+							if ($row2['item_id'] != $_GET['item']) {?>
+	                        	<div><input type="checkbox" value="1" name="cat_<? echo $row2['catalog_cat_id']; ?>" /> &nbsp; <? echo $row2['catalog_cat_title']; ?>
+<?							} else { ?>
+		                       	<div><input type="checkbox" value="1" name="cat_<? echo $row2['catalog_cat_id']; ?>" checked="checked" /> &nbsp; <? echo $row2['catalog_cat_title']; ?>
+<?							};
+							loop_categories_checkbox($row2['catalog_cat_id']); ?>
+                           	</div>
+<?						}; ?>
+						</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                </tr>
+<?			unset ($tempArr);
+			foreach ($def_order as $key=>$value) {
+				if ($fields[$key]['def'] != '' && ($fields[$key]['col'] != 'date_added' && $fields[$key]['col'] != 'date_mod' && $fields[$key]['col'] != 'item_id' && $fields[$key]['col'] != 'date_added')) { ?>
+                	<tr>
+                    	<td style="text-align:right; vertical-align:top;<? if ($fields[$key]['required'] == 1) { ?>color:#a70000;<? }; ?>"><? if ($fields[$key]['hidden'] == 1) { ?><img src="/images/hidden.png" /><? }; ?> <? echo $fields[$key]['def']; ?>: &nbsp; </td>
+                        <td>
+<?                      switch ($fields[$key]['type']) {
+							case 'text': ?>
+                        		<input type="text" name="<? echo $fields[$key]['col'] ?>" id="<? echo $fields[$key]['col'] ?>" style="width:300px;<? if ($fields[$key]['required'] == 1) { ?>border: 2px #a70000 solid;<? }; ?>" value="<? echo $row[$fields[$key]['col']]; ?>"  />
+<?                      		break;
+							case 'integer': ?>
+                        		<input type="text" name="<? echo $fields[$key]['col'] ?>" id="<? echo $fields[$key]['col'] ?>" style="width:300px;<? if ($fields[$key]['required'] == 1) { ?>border: 2px #a70000 solid;<? }; ?>" value="<? echo $row[$fields[$key]['col']]; ?>" onkeypress="if ( isNaN( String.fromCharCode(event.keyCode) )) return false;" />
+<?                      		break;
+							case 'currency': ?>
+                        		<input type="text" name="<? echo $fields[$key]['col'] ?>" id="<? echo $fields[$key]['col'] ?>" style="width:300px;<? if ($fields[$key]['required'] == 1) { ?>border: 2px #a70000 solid;<? }; ?>" value="<? echo $row[$fields[$key]['col']]; ?>" onkeypress="if ( isNaN(this.value + String.fromCharCode(event.keyCode) )) return false;" />
+<?                      		break;
+							case 'double': ?>
+                        		<input type="text" name="<? echo $fields[$key]['col'] ?>" id="<? echo $fields[$key]['col'] ?>" style="width:300px;<? if ($fields[$key]['required'] == 1) { ?>border: 2px #a70000 solid;<? }; ?>" value="<? echo $row[$fields[$key]['col']]; ?>" onkeypress="if ( isNaN(this.value + String.fromCharCode(event.keyCode) )) return false;" />
+<?                      		break;
+							case 'date': ?>
+                        		<input type="text" name="<? echo $fields[$key]['col'] ?>" id="<? echo $fields[$key]['col'] ?>" style="width:300px;<? if ($fields[$key]['required'] == 1) { ?>border: 2px #a70000 solid;<? }; ?>" value="<? echo $row[$fields[$key]['col']]; ?>"  />
+<?                      		break;
+							case 'checkbox': ?>
+                        		<div style="padding:1px 4px 2px 4px;<? if ($fields[$key]['required'] == 1) { ?>border: 2px #a70000 solid;<? }; ?>"><input type="radio" name="<? echo $fields[$key]['col'] ?>" id="<? echo $fields[$key]['col'] ?>" value="1" <? if ($row[$fields[$key]['col']] == 1) { ?> checked="checked" <? }; ?> /> Yes &nbsp; &nbsp &nbsp; <input type="radio" name="<? echo $fields[$key]['col'] ?>" id="<? echo $fields[$key]['col'] ?>" value="0" <? if ($row[$fields[$key]['col']] == 0) { ?> checked="checked" <? }; ?> /> No</div>
+<?                      		break;
+							case 'longtext': ?>
+                        		<textarea name="<? echo $fields[$key]['col'] ?>" id="<? echo $fields[$key]['col'] ?>" style="width:300px; height:100px;<? if ($fields[$key]['required'] == 1) { ?>border: 2px #a70000 solid;<? }; ?>"><? echo $row[$fields[$key]['col']]; ?></textarea>
+<?                      		break;
+							case 'option': ?>
+                                <select name="<? echo $fields[$key]['col'] ?>" id="<? echo $fields[$key]['col'] ?>" style="width:300px;<? if ($fields[$key]['required'] == 1) { ?>border: 2px #a70000 solid;<? }; ?>">
+                					<option>-- SELECT --</option>
+<?									foreach ($fields[$key]['options'] as $option) { ?>
+									<option value="<? echo $option ?>" <? if ($row[$fields[$key]['col']] == $option) { ?>selected="selected"<? }; ?>><? echo $option ?></option>
+<?									}; ?>
+                                </select>
+<?                      		break;
+							default:
+						}; ?>
+                        </td>
+                    </tr>
+<?				}; ?>
+<?			}; ?>
+					<tr>
+                    	<td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                    </tr>
+					<tr>
+                    	<td style="text-align:right;"><input name="skip_submit" id="skip_submit" type="button" value="CANCEL" style="width:150px; height:30px;" onclick="javascript: window.location = '?site=<? echo $site_id ?>&page=catalog&catalog=<? echo $catalog_id ?>&category=<? echo $category_id ?>'" /> </td>
+                        <td><input name="skip_submit" id="skip_submit" type="submit" value="UPDATE" style="width:300px; height:30px;" /></td>
+                    </tr>
+			</table>
+            </form>
+<?		}; ?>
+<?	break;
+	case "add_item": ?>
+        <h2><? echo $catalog_name . " - " . $cat_tree_names; ?> | ADD ITEM</h2>
+        <form action="?site=<? echo $site_id ?>&page=catalog&catalog=<? echo $catalog_id ?>&category=<? echo $category_id ?>&action=save_item&item=<? echo $_GET['item'] ?>" method="post">
+        <table style="font-size:12px; margin:auto; border-collapse: separate; border-spacing: 5px;">
+				<tr>
+                    <td style="text-align:right; vertical-align:top;">Category: &nbsp; </td>
+                    <td>
+                    	<select style="width:300px; border: 2px #a70000 solid;" onchange="changePage(this.form)" name="choice" id="choice">
+							<option>-- SELECT ONE --</option>
+<?						$strSQL = "SELECT * FROM catalog_categories WHERE catalog_cat_parent = 0 AND catalog_id = " . $catalog_id . " ORDER BY catalog_cat_title ASC;";
+						$rs2 = mysqli_query($con, $strSQL); ?>
+<?						while ($row2 = mysqli_fetch_array($rs2)) { ?>
+							<option value="/site/phpindex.php?site=<? echo $site_id; ?>&page=catalog&catalog=<? echo $catalog_id ?>&category=<? echo $row2['catalog_cat_id']; ?>&action=add_item" <? if ($category_main_parent == $row2['catalog_cat_id']) { ?> selected="selected" <? }; ?>><? echo $row2['catalog_cat_title']; ?></option>
+<?						}; ?>
+						</select>
+                    </td>
+                </tr>
+				<tr>
+                    <td style="text-align:right; vertical-align:top;">Sub Category: &nbsp; </td>
+                    <td>
+                    	<div style="border: 2px #a70000 solid; line-height:18px; padding:4px;">
+<?						$strSQL = "SELECT * FROM catalog_categories WHERE catalog_cat_parent = " . $category_main_parent . " AND catalog_id = " . $catalog_id . " ORDER BY catalog_cat_title ASC;";
+						$rs = mysqli_query($con, $strSQL);
+						while ($row = mysqli_fetch_array($rs)) { ?>
+                        	<input type="checkbox" value="1" name="cat_<? echo $row['catalog_cat_id']; ?>" <? if ($category_id == $row['catalog_cat_id']) { ?> checked="checked" <? }; ?> /> &nbsp; <? echo $row['catalog_cat_title']; ?><br />
+<?						}; ?>
+						</div>
+                    </td>
+                </tr>
+				<tr>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                </tr>
+<?		unset ($tempArr);
+		foreach ($def_order as $key=>$value) {
+			if ($fields[$key]['def'] != '' && ($fields[$key]['col'] != 'date_added' && $fields[$key]['col'] != 'date_mod' && $fields[$key]['col'] != 'item_id' && $fields[$key]['col'] != 'date_added')) { ?>
+           		<tr>
+                    <td style="text-align:right; vertical-align:top;<? if ($fields[$key]['required'] == 1) { ?>color:#a70000;<? }; ?>"><? echo $fields[$key]['def']; ?>: &nbsp; </td>
+                    <td>
+<?                      switch ($fields[$key]['type']) {
+							case 'text': ?>
+                        		<input type="text" name="<? echo $fields[$key]['col'] ?>" id="<? echo $fields[$key]['col'] ?>" style="width:300px;<? if ($fields[$key]['required'] == 1) { ?>border: 2px #a70000 solid;<? }; ?>" value=""  />
+<?                      		break;
+							case 'integer': ?>
+                        		<input type="text" name="<? echo $fields[$key]['col'] ?>" id="<? echo $fields[$key]['col'] ?>" style="width:300px;<? if ($fields[$key]['required'] == 1) { ?>border: 2px #a70000 solid;<? }; ?>" value="" onkeypress="if ( isNaN( String.fromCharCode(event.keyCode) )) return false;" />
+<?                      		break;
+							case 'double': ?>
+                        		<input type="text" name="<? echo $fields[$key]['col'] ?>" id="<? echo $fields[$key]['col'] ?>" style="width:300px;<? if ($fields[$key]['required'] == 1) { ?>border: 2px #a70000 solid;<? }; ?>" value="" onkeypress="if ( isNaN(this.value + String.fromCharCode(event.keyCode) )) return false;" />
+<?                      		break;
+							case 'currency': ?>
+                        		<input type="text" name="<? echo $fields[$key]['col'] ?>" id="<? echo $fields[$key]['col'] ?>" style="width:300px;<? if ($fields[$key]['required'] == 1) { ?>border: 2px #a70000 solid;<? }; ?>" value="" onkeypress="if ( isNaN(this.value + String.fromCharCode(event.keyCode) )) return false;" />
+<?                      		break;
+							case 'date': ?>
+                        		<input type="text" name="<? echo $fields[$key]['col'] ?>" id="<? echo $fields[$key]['col'] ?>" style="width:300px;<? if ($fields[$key]['required'] == 1) { ?>border: 2px #a70000 solid;<? }; ?>" value=""  />
+<?                      		break;
+							case 'checkbox': ?>
+                        		<div style="padding:1px 4px 2px 4px;<? if ($fields[$key]['required'] == 1) { ?>border: 2px #a70000 solid;<? }; ?>"><input type="radio" name="<? echo $fields[$key]['col'] ?>" id="<? echo $fields[$key]['col'] ?>" value="1" /> Yes &nbsp; &nbsp &nbsp; <input type="radio" name="<? echo $fields[$key]['col'] ?>" id="<? echo $fields[$key]['col'] ?>" value="0" checked="checked" /> No</div>
+<?                      		break;
+							case 'longtext': ?>
+                        		<textarea name="<? echo $fields[$key]['col'] ?>" id="<? echo $fields[$key]['col'] ?>" style="width:300px; height:100px;<? if ($fields[$key]['required'] == 1) { ?>border: 2px #a70000 solid;<? }; ?>"></textarea>
+<?                      		break;
+							case 'option': ?>
+                                <select name="<? echo $fields[$key]['col'] ?>" id="<? echo $fields[$key]['col'] ?>" style="width:300px;<? if ($fields[$key]['required'] == 1) { ?>border: 2px #a70000 solid;<? }; ?>">
+                					<option>-- SELECT --</option>
+<?									foreach ($fields[$key]['options'] as $option) { ?>
+									<option value="<? echo $option ?>"><? echo $option ?></option>
+<?									}; ?>
+                                </select>
+<?                      		break;
+							default:
+						}; ?>
+                    </td>
+                </tr>
+<?			}; ?>
+<?		}; ?>
+				<tr>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                </tr>
+				<tr>
+                    <td style="text-align:right;"><input name="skip_submit" id="skip_submit" type="button" value="CANCEL" style="width:150px; height:30px;" onclick="javascript: window.location = '?site=<? echo $site_id ?>&page=catalog&catalog=<? echo $catalog_id ?>&category=<? echo $category_id ?>'" /> </td>
+                    <td><input name="skip_submit" id="skip_submit" type="submit" value="SAVE" style="width:300px; height:30px;" /></td>
+                </tr>
+			</table>
+            </form>
+<?		break;
+	case "add_main_category": ?>
+        <h2>ADD CATEGORY</h2>
+        <div style="text-align:right;"><input type="submit" value=" SAVE DEFINITIONS " class="submit" /></div>
+        <div class="edit_categories_div" style="float: left; width:160px; text-align:right; padding-right:5px;">
+        	<div>Category Title :</div>
+        	<div>Item ID :</div>
+        	<div>Item Title :</div>
+        	<div>Date Added :</div>
+        	<div>Date Modified :</div>
+        	<div>Hide/Show :</div>
+        	<div>Feature :</div>
+        	<div>Text Field 1 :</div>
+        	<div>Text Field 2 :</div>
+        	<div>Text Field 3 :</div>
+        	<div>Text Field 4 :</div>
+        	<div>Text Field 5 :</div>
+        	<div>Text Field 6 :</div>
+        	<div>Text Field 7 :</div>
+        	<div>Text Field 8 :</div>
+        	<div>Text Field 9 :</div>
+        	<div>Text Field 10 :</div>
+        	<div>Text Field 11 :</div>
+        	<div>Text Field 12 :</div>
+        	<div>Text Field 13 :</div>
+        	<div>Text Field 14 :</div>
+        	<div>Text Field 15 :</div>
+        	<div>Text Field 16 :</div>
+        	<div>Text Field 17 :</div>
+        	<div>Text Field 18 :</div>
+        	<div>Text Field 19 :</div>
+        	<div>Text Field 20 :</div>
+            <div>Number Field 1 :</div>
+            <div>Number Field 2 :</div>
+            <div>Number Field 3 :</div>
+            <div>Number Field 4 :</div>
+            <div>Number Field 5 :</div>
+            <div>Number Field 6 :</div>
+            <div>Number Field 7 :</div>
+            <div>Number Field 8 :</div>
+            <div>Number Field 9 :</div>
+            <div>Number Field 10 :</div>
+            <div>Currency Field 1 :</div>
+            <div>Currency 1 Terms :</div>
+            <div>Currency Field 2 :</div>
+            <div>Currency 2 Terms :</div>
+            <div>Currency Field 3 :</div>
+            <div>Currency 3 Terms :</div>
+            <div>Currency Field 4 :</div>
+            <div>Currency 4 Terms :</div>
+            <div>Currency Field 5 :</div>
+            <div>Currency 5 Terms :</div>
+            <div>Date Field 1 :</div>
+            <div>Date Field 2 :</div>
+            <div>Date Field 3 :</div>
+            <div>Date Field 4 :</div>
+            <div>Date Field 5 :</div>
+            <div>Double 1 :</div>
+            <div>Double 2 :</div>
+            <div>Double 3 :</div>
+            <div>Double 4 :</div>
+            <div>Double 5 :</div>
+            <div>Double 6 :</div>
+            <div>Double 7 :</div>
+            <div>Double 8 :</div>
+            <div>Double 9 :</div>
+            <div>Double 10 :</div>
+            <div>Boolean 1 :</div>
+            <div>Boolean 2 :</div>
+            <div>Boolean 3 :</div>
+            <div>Boolean 4 :</div>
+            <div>Boolean 5 :</div>
+            <div>Long Text 1 :</div>
+            <div>Long Text 2 :</div>
+            <div>Long Text 3 :</div>
+            <div>Long Text 4 :</div>
+            <div>Long Text 5 :</div>
+            <div>Long Text 6 :</div>
+            <div>Long Text 7 :</div>
+            <div>Long Text 8 :</div>
+            <div>Long Text 9 :</div>
+            <div>Long Text 10 :</div>
+            <div>Hyperlink 1 :</div>
+            <div>Hyperlink 2 :</div>
+            <div>Hyperlink 3 :</div>
+            <div>Hyperlink 4 :</div>
+            <div>Hyperlink 5 :</div>
+            <div>Option 1 :</div>
+            <div>Option 1 Choices :</div>
+            <div>Option 2 :</div>
+            <div>Option 2 Choices :</div>
+            <div>Option 3 :</div>
+            <div>Option 3 Choices :</div>
+            <div>Option 4 :</div>
+            <div>Option 4 Choices :</div>
+            <div>Option 5 :</div>
+            <div>Option 5 Choices :</div>
+        </div>
+<?		$whatCat = "new_cat";
+		$x = 0;
+		$def_required = explode("0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0",",");
+		$def_order = explode(",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,",",");
+		$def_hidden = explode("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0",",");
+?>
+        <div class="edit_categories_div" style="float: left; width:220px; text-align:left;">
+        	<div style="font-weight:bold;"><input type="text" name="new_cat" id="new_cat"/><div style="float:right; padding-right:13px;"><img src="/images/required_hidden.png" /></div></div>
+        	<div><input onchange="site,field,id,x,data save_cat_def ('<? echo $site_id ?>','catalog_field_def','item_title','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*item_title" id="<? echo $whatCat ?>*item_title" value="" /> <input type="text"  onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> <input type="checkbox" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> <input type="checkbox" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /></div>
+        	<? $x++; ?>
+            <div><input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','date_added','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*date_added" id="<? echo $whatCat ?>*date_added" value="" /> <input type="text"  onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> <input type="checkbox" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> <input type="checkbox" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /></div>
+        	<? $x++; ?>
+        	<div><input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','date_mod','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*date_mod" id="<? echo $whatCat ?>*date_mod" value="" /> <input type="text"  onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> <input type="checkbox" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> <input type="checkbox" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /></div>
+        	<? $x++; ?>
+        	<div><input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','display','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*display" id="<? echo $whatCat ?>*display" value="" /> <input type="text"  onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> <input type="checkbox" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> <input type="checkbox" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /></div>
+        	<? $x++; ?>
+        	<div><input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','feature','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*feature" id="<? echo $whatCat ?>*feature" value="" /> <input type="text"  onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> <input type="checkbox" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> <input type="checkbox" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /></div>
+<?			$x++;
+			for ($i=1;$i<=20;$i++) { ?>
+        	<div><input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','text_<? echo $i ?>','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*text_<? echo $i ?>" id="<? echo $whatCat ?>*text_<? echo $i ?>" value="" /> <input type="text"  onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> <input type="checkbox" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> <input type="checkbox" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /></div>
+<?			$x++;
+			}; ?>
+<?			for ($i=1;$i<=10;$i++) { ?>
+        	<div><input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','num_<? echo $i ?>','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*num_<? echo $i ?>" id="<? echo $whatCat ?>*num_<? echo $i ?>" value="" /> <input type="text"  onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> <input type="checkbox" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> <input type="checkbox" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /></div>
+<?			$x++;
+			}; ?>
+<?			for ($i=1;$i<=5;$i++) { ?>
+        	<div><input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','currency_<? echo $i ?>','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*currency_<? echo $i ?>" id="<? echo $whatCat ?>*currency_<? echo $i ?>" value="" /> <input type="text"  onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> <input type="checkbox" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> <input type="checkbox" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /></div>
+        	<div><input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','currency_<? echo $i ?>_terms','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*currency_<? echo $i ?>_terms" id="<? echo $whatCat ?>*currency_<? echo $i ?>_terms" value="" /></div>
+<?			$x++;
+			}; ?>
+<?			for ($i=1;$i<=5;$i++) { ?>
+        	<div><input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','date_<? echo $i ?>','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*date_<? echo $i ?>" id="<? echo $whatCat ?>*date_<? echo $i ?>" value="" /> <input type="text"  onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> <input type="checkbox" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> <input type="checkbox" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /></div>
+<?			$x++;
+			}; ?>
+<?			for ($i=1;$i<=10;$i++) { ?>
+        	<div><input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','double_<? echo $i ?>','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*double_<? echo $i ?>" id="<? echo $whatCat ?>*double_<? echo $i ?>" value="" /> <input type="text"  onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> <input type="checkbox" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> <input type="checkbox" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /></div>
+<?			$x++;
+			}; ?>
+<?			for ($i=1;$i<=5;$i++) { ?>
+        	<div><input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','boolean_<? echo $i ?>','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*boolean_<? echo $i ?>" id="<? echo $whatCat ?>*boolean_<? echo $i ?>" value="" /> <input type="text"  onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> <input type="checkbox" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> <input type="checkbox" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /></div>
+<?			$x++;
+			}; ?>
+<?			for ($i=1;$i<=10;$i++) { ?>
+        	<div><input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','memo_<? echo $i ?>','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*memo_<? echo $i ?>" id="<? echo $whatCat ?>*memo_<? echo $i ?>" value="" /> <input type="text"  onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> <input type="checkbox" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> <input type="checkbox" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /></div>
+<?			$x++;
+			}; ?>
+<?			for ($i=1;$i<=5;$i++) { ?>
+        	<div><input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','link_<? echo $i ?>','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*link_<? echo $i ?>" id="<? echo $whatCat ?>*link_<? echo $i ?>" value="" /> <input type="text"  onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> <input type="checkbox" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> <input type="checkbox" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /></div>
+<?			$x++;
+			}; ?>
+<?			for ($i=1;$i<=5;$i++) { ?>
+        	<div><input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','option_<? echo $i ?>','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*option_<? echo $i ?>" id="<? echo $whatCat ?>*option_<? echo $i ?>" value="" /> <input type="text"  onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> <input type="checkbox" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> <input type="checkbox" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /></div>
+        	<div><input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','option_<? echo $i ?>_options','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*option_<? echo $i ?>_options" id="<? echo $whatCat ?>*option_<? echo $i ?>_options" value="" /></div>
+<?			$x++;
+			}; ?>
+        </div>
+<?		$strSQL = "SELECT * FROM catalog_categories LEFT JOIN catalog_field_def ON catalog_field_def.catalog_cat_id = catalog_categories.catalog_cat_id WHERE catalog_id = " . $catalog_id . " AND catalog_cat_parent = 0 ORDER BY catalog_cat_title ASC;";
+		$rs = mysqli_query($con, $strSQL);
+		$y = 0;
+		while ($row = mysqli_fetch_array($rs)) {
+		$y++;
+		$x = 0;
+		$whatCat = $row["catalog_cat_id"];
+		if (strpos($row["def_required"],",") > 0) {
+			$def_required = explode(',',$row["def_required"]);
+		} else {
+			$def_required = explode("0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0",",");
+		};
+		if (strpos($row["hidden_fields"],",") > 0) {
+			$def_hidden = explode(',',$row["hidden_fields"]);
+		} else {
+			$def_hidden = explode("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0",",");
+		};
+		if (strpos($row["def_order"],",") > 0) {
+			$def_order = explode(',',$row["def_order"]);
+		} else { 
+			$def_order = explode(",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,",",");
+		}; ?>
+        <div class="edit_categories_div" style="float: left; width:220px; text-align:left;">
+        	<div style="text-align:center; font-weight:bold;"><? echo $row['catalog_cat_title'] ?><div style="float:right; padding-right:13px;"><img src="/images/required_hidden.png" /></div></div>
+        	<div><input type="text" name="<? echo $whatCat ?>*item_title" id="<? echo $whatCat ?>*item_title" value="" /> <input type="text"  onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> <input type="checkbox" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> <input type="checkbox" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /></div>
+        	<? $x++; ?>
+            <div><input type="text" name="<? echo $whatCat ?>*date_added" id="<? echo $whatCat ?>*date_added" value="" /> <input type="text"  onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> <input type="checkbox" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> <input type="checkbox" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /></div>
+        	<? $x++; ?>
+        	<div><input type="text" name="<? echo $whatCat ?>*date_mod" id="<? echo $whatCat ?>*date_mod" value="" /> <input type="text"  onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> <input type="checkbox" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> <input type="checkbox" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /></div>
+        	<? $x++; ?>
+        	<div><input type="text" name="<? echo $whatCat ?>*display" id="<? echo $whatCat ?>*display" value="" /> <input type="text"  onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> <input type="checkbox" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> <input type="checkbox" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /></div>
+        	<? $x++; ?>
+        	<div><input type="text" name="<? echo $whatCat ?>*feature" id="<? echo $whatCat ?>*feature" value="" /> <input type="text"  onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> <input type="checkbox" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> <input type="checkbox" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /></div>
+<?			$x++;
+			for ($i=1;$i<=20;$i++) { ?>
+        	<div><input type="text" name="<? echo $whatCat ?>*text_<? echo $i ?>" id="<? echo $whatCat ?>*text_<? echo $i ?>" value="<? echo $row['text_' . $i]; ?>" /> <input type="text"  onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> <input type="checkbox" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> <input type="checkbox" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /></div>
+<?			$x++;
+			}; ?>
+<?			for ($i=1;$i<=10;$i++) { ?>
+        	<div><input type="text" name="<? echo $whatCat ?>*num_<? echo $i ?>" id="<? echo $whatCat ?>*num_<? echo $i ?>" value="<? echo $row['num_' . $i]; ?>" /> <input type="text"  onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> <input type="checkbox" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> <input type="checkbox" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /></div>
+<?			$x++;
+			}; ?>
+<?			for ($i=1;$i<=5;$i++) { ?>
+        	<div><input type="text" name="<? echo $whatCat ?>*currency_<? echo $i ?>" id="<? echo $whatCat ?>*currency_<? echo $i ?>" value="<? echo $row['currency_' . $i]; ?>" /> <input type="text"  onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> <input type="checkbox" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> <input type="checkbox" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /></div>
+        	<div><input type="text" name="<? echo $whatCat ?>*currency_<? echo $i ?>_terms" id="<? echo $whatCat ?>*currency_<? echo $i ?>_terms" value="<? echo $row['currency_' . i . "_terms"] ?>" /></div>
+<?			$x++;
+			}; ?>
+<?			for ($i=1;$i<=5;$i++) { ?>
+        	<div><input type="text" name="<? echo $whatCat ?>*date_<? echo $i ?>" id="<? echo $whatCat ?>*date_<? echo $i ?>" value="<? echo $row['date_' . $i]; ?>" /> <input type="text"  onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> <input type="checkbox" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> <input type="checkbox" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /></div>
+<?			$x++;
+			}; ?>
+<?			for ($i=1;$i<=10;$i++) { ?>
+        	<div><input type="text" name="<? echo $whatCat ?>*double_<? echo $i ?>" id="<? echo $whatCat ?>*double_<? echo $i ?>" value="<? echo $row['double_' . $i]; ?>" /> <input type="text"  onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> <input type="checkbox" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> <input type="checkbox" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /></div>
+<?			$x++;
+			}; ?>
+<?			for ($i=1;$i<=5;$i++) { ?>
+        	<div><input type="text" name="<? echo $whatCat ?>*boolean_<? echo $i ?>" id="<? echo $whatCat ?>*boolean_<? echo $i ?>" value="<? echo $row['boolean_' . $i]; ?>" /> <input type="text"  onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> <input type="checkbox" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> <input type="checkbox" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /></div>
+<?			$x++;
+			}; ?>
+<?			for ($i=1;$i<=10;$i++) { ?>
+        	<div><input type="text" name="<? echo $whatCat ?>*memo_<? echo $i ?>" id="<? echo $whatCat ?>*memo_<? echo $i ?>" value="<? echo $row['memo_' . $i]; ?>" /> <input type="text"  onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> <input type="checkbox" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> <input type="checkbox" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /></div>
+<?			$x++;
+			}; ?>
+<?			for ($i=1;$i<=5;$i++) { ?>
+        	<div><input type="text" name="<? echo $whatCat ?>*link_<? echo $i ?>" id="<? echo $whatCat ?>*link_<? echo $i ?>" value="<? echo $row['link_' . $i]; ?>" /> <input type="text"  onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> <input type="checkbox" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> <input type="checkbox" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /></div>
+<?			$x++;
+			}; ?>
+<?			for ($i=1;$i<=5;$i++) { ?>
+        	<div><input type="text" name="<? echo $whatCat ?>*option_<? echo $i ?>" id="<? echo $whatCat ?>*option_<? echo $i ?>" value="<? echo $row['option_' . $i]; ?>" /> <input type="text"  onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> <input type="checkbox" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> <input type="checkbox" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /></div>
+        	<div><input type="text" name="<? echo $whatCat ?>*option_<? echo $i ?>_options" id="<? echo $whatCat ?>*option_<? echo $i ?>_options" value="<? echo $row['option_' . $i . "_options"]; ?>" /></div>
+<?			$x++;
+			}; ?>
+        </div>
+<?		}; ?>
+        <input type="hidden" id="skip_num_cats" name="skip_num_cats" value="<? echo $y ?>" />
+        <div style="clear:both; text-align:right;"><input type="submit" value=" SAVE DEFINITIONS " class="submit" /></div>
+<?		break;
+	case "edit_categories": ?>
+        <h2>EDIT CATEGORIES</h2>
+        <div style="clear:both; float:right;"><a href="?site=<? echo $site_id ?>&page=catalog&catalog=<? echo $catalog_id ?>&category=<? echo $category_id ?>" style="padding:3px 10px; color:#FFFFFF; text-decoration:none;"><h3 style="padding:5px 10px; color:#FFFFFF; text-decoration:none; width:75px; text-align:center;">DONE</h3></a></div>
+        <div class="edit_categories_div" style="float: left; width:160px; text-align:right; padding-right:5px;">
+        	<div>&nbsp;</div>
+        	<div>Item ID :</div>
+        	<div>Item Title :</div>
+        	<div>Date Added :</div>
+        	<div>Date Modified :</div>
+        	<div>Hide/Show :</div>
+        	<div>Feature :</div>
+        	<div>Text Field 1 :</div>
+        	<div>Text Field 2 :</div>
+        	<div>Text Field 3 :</div>
+        	<div>Text Field 4 :</div>
+        	<div>Text Field 5 :</div>
+        	<div>Text Field 6 :</div>
+        	<div>Text Field 7 :</div>
+        	<div>Text Field 8 :</div>
+        	<div>Text Field 9 :</div>
+        	<div>Text Field 10 :</div>
+        	<div>Text Field 11 :</div>
+        	<div>Text Field 12 :</div>
+        	<div>Text Field 13 :</div>
+        	<div>Text Field 14 :</div>
+        	<div>Text Field 15 :</div>
+        	<div>Text Field 16 :</div>
+        	<div>Text Field 17 :</div>
+        	<div>Text Field 18 :</div>
+        	<div>Text Field 19 :</div>
+        	<div>Text Field 20 :</div>
+            <div>Number Field 1 :</div>
+            <div>Number Field 2 :</div>
+            <div>Number Field 3 :</div>
+            <div>Number Field 4 :</div>
+            <div>Number Field 5 :</div>
+            <div>Number Field 6 :</div>
+            <div>Number Field 7 :</div>
+            <div>Number Field 8 :</div>
+            <div>Number Field 9 :</div>
+            <div>Number Field 10 :</div>
+            <div>Currency Field 1 :</div>
+            <div>Currency 1 Terms :</div>
+            <div>Currency Field 2 :</div>
+            <div>Currency 2 Terms :</div>
+            <div>Currency Field 3 :</div>
+            <div>Currency 3 Terms :</div>
+            <div>Currency Field 4 :</div>
+            <div>Currency 4 Terms :</div>
+            <div>Currency Field 5 :</div>
+            <div>Currency 5 Terms :</div>
+            <div>Date Field 1 :</div>
+            <div>Date Field 2 :</div>
+            <div>Date Field 3 :</div>
+            <div>Date Field 4 :</div>
+            <div>Date Field 5 :</div>
+            <div>Double 1 :</div>
+            <div>Double 2 :</div>
+            <div>Double 3 :</div>
+            <div>Double 4 :</div>
+            <div>Double 5 :</div>
+            <div>Double 6 :</div>
+            <div>Double 7 :</div>
+            <div>Double 8 :</div>
+            <div>Double 9 :</div>
+            <div>Double 10 :</div>
+            <div>Boolean 1 :</div>
+            <div>Boolean 2 :</div>
+            <div>Boolean 3 :</div>
+            <div>Boolean 4 :</div>
+            <div>Boolean 5 :</div>
+            <div>Long Text 1 :</div>
+            <div>Long Text 2 :</div>
+            <div>Long Text 3 :</div>
+            <div>Long Text 4 :</div>
+            <div>Long Text 5 :</div>
+            <div>Long Text 6 :</div>
+            <div>Long Text 7 :</div>
+            <div>Long Text 8 :</div>
+            <div>Long Text 9 :</div>
+            <div>Long Text 10 :</div>
+            <div>Hyperlink 1 :</div>
+            <div>Hyperlink 2 :</div>
+            <div>Hyperlink 3 :</div>
+            <div>Hyperlink 4 :</div>
+            <div>Hyperlink 5 :</div>
+            <div>Option 1 :</div>
+            <div>Option 1 Choices :</div>
+            <div>Option 2 :</div>
+            <div>Option 2 Choices :</div>
+            <div>Option 3 :</div>
+            <div>Option 3 Choices :</div>
+            <div>Option 4 :</div>
+            <div>Option 4 Choices :</div>
+            <div>Option 5 :</div>
+            <div>Option 5 Choices :</div>
+        </div>
+<?		$strSQL = "SELECT * FROM catalog_categories LEFT JOIN catalog_field_def ON catalog_field_def.catalog_cat_id = catalog_categories.catalog_cat_id WHERE catalog_id = " . $catalog_id . " AND catalog_cat_parent = 0 ORDER BY catalog_cat_title ASC;";
+		$rs = mysqli_query($con, $strSQL);
+		$y = 0;
+		while ($row = mysqli_fetch_array($rs)) {
+		$y++;
+		$x = 0;
+		$whatCat = $row["catalog_cat_id"];
+		if (strpos($row["def_required"],",") > 0) {
+			$def_required = explode(',',$row["def_required"]);
+		} else {
+			$def_required = explode("0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0",",");
+		};
+		if (strpos($row["hidden_fields"],",") > 0) {
+			$def_hidden = explode(',',$row["hidden_fields"]);
+		} else {
+			$def_hidden = explode("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0",",");
+		};
+		if (strpos($row["def_order"],",") != false || strpos($row["def_order"],",") == 0) {
+			$def_order = explode(',',$row["def_order"]);
+		} else { 
+			$def_order = explode(",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,",",");
+		}; ?>
+        <div class="edit_categories_div" style="float: left; width:220px; text-align:left;">
+        	<div style="text-align:center; font-weight:bold;"><? echo $row['catalog_cat_title'] ?><div style="float:right; padding-right:13px;"><img src="/images/required_hidden.png" /></div></div>
+        	<div>
+                <input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','item_id','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*item_id" id="<? echo $whatCat ?>*item_id" value="<? echo $row['item_id']; ?>" /> 
+                <input type="text" onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> 
+                <input type="checkbox" onclick="save_cat_boolean('<? echo $site_id ?>','def_required','<? echo $whatCat ?>','<? echo $x ?>',this)" onclick="save_cat_boolean('<? echo $site_id ?>','def_required','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> 
+                <input type="checkbox" onclick="save_cat_boolean('<? echo $site_id ?>','hidden_fields','<? echo $whatCat ?>','<? echo $x ?>',this)" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" />
+            </div>
+        	<? $x++; ?>
+        	<div>
+                <input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','item_title','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*item_title" id="<? echo $whatCat ?>*item_title" value="<? echo $row['item_title']; ?>" /> 
+                <input type="text" onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> 
+                <input type="checkbox" onclick="save_cat_boolean('<? echo $site_id ?>','def_required','<? echo $whatCat ?>','<? echo $x ?>',this)" onclick="save_cat_boolean('<? echo $site_id ?>','def_required','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> 
+                <input type="checkbox" onclick="save_cat_boolean('<? echo $site_id ?>','hidden_fields','<? echo $whatCat ?>','<? echo $x ?>',this)" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" />
+            </div>
+        	<? $x++; ?>
+            <div>
+                <input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','date_added','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*date_added" id="<? echo $whatCat ?>*date_added" value="<? echo $row['date_added']; ?>" /> 
+                <input type="text" onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> 
+                <input type="checkbox" onclick="save_cat_boolean('<? echo $site_id ?>','def_required','<? echo $whatCat ?>','<? echo $x ?>',this)" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> 
+                <input type="checkbox" onclick="save_cat_boolean('<? echo $site_id ?>','hidden_fields','<? echo $whatCat ?>','<? echo $x ?>',this)" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" />
+            </div>
+        	<? $x++; ?>
+        	<div>
+                <input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','date_mod','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*date_mod" id="<? echo $whatCat ?>*date_mod" value="<? echo $row['date_mod']; ?>" /> 
+                <input type="text" onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> 
+                <input type="checkbox" onclick="save_cat_boolean('<? echo $site_id ?>','def_required','<? echo $whatCat ?>','<? echo $x ?>',this)" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> 
+                <input type="checkbox" onclick="save_cat_boolean('<? echo $site_id ?>','hidden_fields','<? echo $whatCat ?>','<? echo $x ?>',this)" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" />
+            </div>
+        	<? $x++; ?>
+        	<div>
+                <input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','display','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*display" id="<? echo $whatCat ?>*display" value="<? echo $row['display']; ?>" /> 
+                <input type="text" onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> 
+                <input type="checkbox" onclick="save_cat_boolean('<? echo $site_id ?>','def_required','<? echo $whatCat ?>','<? echo $x ?>',this)" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> 
+                <input type="checkbox" onclick="save_cat_boolean('<? echo $site_id ?>','hidden_fields','<? echo $whatCat ?>','<? echo $x ?>',this)" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" />
+            </div>
+        	<? $x++; ?>
+        	<div>
+                <input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','feature','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*feature" id="<? echo $whatCat ?>*feature" value="<? echo $row['feature']; ?>" /> 
+                <input type="text" onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> 
+                <input type="checkbox" onclick="save_cat_boolean('<? echo $site_id ?>','def_required','<? echo $whatCat ?>','<? echo $x ?>',this)" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> 
+                <input type="checkbox" onclick="save_cat_boolean('<? echo $site_id ?>','hidden_fields','<? echo $whatCat ?>','<? echo $x ?>',this)" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" />
+            </div>
+<?			$x++;
+			for ($i=1;$i<=20;$i++) { ?>
+        	<div>
+                <input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','text_<? echo $i ?>','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*text_<? echo $i ?>" id="<? echo $whatCat ?>*text_<? echo $i ?>" value="<? echo $row['text_' . $i]; ?>" /> 
+                <input type="text" onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> 
+                <input type="checkbox" onclick="save_cat_boolean('<? echo $site_id ?>','def_required','<? echo $whatCat ?>','<? echo $x ?>',this)" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> 
+                <input type="checkbox" onclick="save_cat_boolean('<? echo $site_id ?>','hidden_fields','<? echo $whatCat ?>','<? echo $x ?>',this)" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" />
+            </div>
+<?			$x++;
+			}; ?>
+<?			for ($i=1;$i<=10;$i++) { ?>
+        	<div>
+                <input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','num_<? echo $i ?>','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*num_<? echo $i ?>" id="<? echo $whatCat ?>*num_<? echo $i ?>" value="<? echo $row['num_' . $i]; ?>" /> 
+                <input type="text" onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> 
+                <input type="checkbox" onclick="save_cat_boolean('<? echo $site_id ?>','def_required','<? echo $whatCat ?>','<? echo $x ?>',this)" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> 
+                <input type="checkbox" onclick="save_cat_boolean('<? echo $site_id ?>','hidden_fields','<? echo $whatCat ?>','<? echo $x ?>',this)" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" />
+            </div>
+<?			$x++;
+			}; ?>
+<?			for ($i=1;$i<=5;$i++) { ?>
+        	<div>
+                <input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','currency_<? echo $i ?>','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*currency_<? echo $i ?>" id="<? echo $whatCat ?>*currency_<? echo $i ?>" value="<? echo $row['currency_' . $i]; ?>" /> 
+                <input type="text" onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> 
+                <input type="checkbox" onclick="save_cat_boolean('<? echo $site_id ?>','def_required','<? echo $whatCat ?>','<? echo $x ?>',this)" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> 
+                <input type="checkbox" onclick="save_cat_boolean('<? echo $site_id ?>','hidden_fields','<? echo $whatCat ?>','<? echo $x ?>',this)" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" />
+            </div>
+        	<div>
+                <input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','currency_<? echo $i ?>_terms','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*currency_<? echo $i ?>_terms" id="<? echo $whatCat ?>*currency_<? echo $i ?>_terms" value="<? echo $row['currency_' . i . "_terms"] ?>" />
+            </div>
+<?			$x++;
+			}; ?>
+<?			for ($i=1;$i<=5;$i++) { ?>
+        	<div>
+                <input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','date_<? echo $i ?>','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*date_<? echo $i ?>" id="<? echo $whatCat ?>*date_<? echo $i ?>" value="<? echo $row['date_' . $i]; ?>" /> 
+                <input type="text" onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> 
+                <input type="checkbox" onclick="save_cat_boolean('<? echo $site_id ?>','def_required','<? echo $whatCat ?>','<? echo $x ?>',this)" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> 
+                <input type="checkbox" onclick="save_cat_boolean('<? echo $site_id ?>','hidden_fields','<? echo $whatCat ?>','<? echo $x ?>',this)" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" />
+            </div>
+<?			$x++;
+			}; ?>
+<?			for ($i=1;$i<=10;$i++) { ?>
+        	<div>
+                <input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','double_<? echo $i ?>','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*double_<? echo $i ?>" id="<? echo $whatCat ?>*double_<? echo $i ?>" value="<? echo $row['double_' . $i]; ?>" /> 
+                <input type="text" onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> 
+                <input type="checkbox" onclick="save_cat_boolean('<? echo $site_id ?>','def_required','<? echo $whatCat ?>','<? echo $x ?>',this)" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> 
+                <input type="checkbox" onclick="save_cat_boolean('<? echo $site_id ?>','hidden_fields','<? echo $whatCat ?>','<? echo $x ?>',this)" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" />
+            </div>
+<?			$x++;
+			}; ?>
+<?			for ($i=1;$i<=5;$i++) { ?>
+        	<div>
+                <input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','boolean_<? echo $i ?>','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*boolean_<? echo $i ?>" id="<? echo $whatCat ?>*boolean_<? echo $i ?>" value="<? echo $row['boolean_' . $i]; ?>" /> 
+                <input type="text" onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> 
+                <input type="checkbox" onclick="save_cat_boolean('<? echo $site_id ?>','def_required','<? echo $whatCat ?>','<? echo $x ?>',this)" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> 
+                <input type="checkbox" onclick="save_cat_boolean('<? echo $site_id ?>','hidden_fields','<? echo $whatCat ?>','<? echo $x ?>',this)" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" />
+            </div>
+<?			$x++;
+			}; ?>
+<?			for ($i=1;$i<=10;$i++) { ?>
+        	<div>
+            	<input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','memo_<? echo $i ?>','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*memo_<? echo $i ?>" id="<? echo $whatCat ?>*memo_<? echo $i ?>" value="<? echo $row['memo_' . $i]; ?>" /> 
+                <input type="text" onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> 
+                <input type="checkbox" onclick="save_cat_boolean('<? echo $site_id ?>','def_required','<? echo $whatCat ?>','<? echo $x ?>',this)" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> 
+                <input type="checkbox" onclick="save_cat_boolean('<? echo $site_id ?>','hidden_fields','<? echo $whatCat ?>','<? echo $x ?>',this)" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" />
+            </div>
+<?			$x++;
+			}; ?>
+<?			for ($i=1;$i<=5;$i++) { ?>
+        	<div>
+            	<input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','link_<? echo $i ?>','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*link_<? echo $i ?>" id="<? echo $whatCat ?>*link_<? echo $i ?>" value="<? echo $row['link_' . $i]; ?>" /> 
+                <input type="text" onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> 
+                <input type="checkbox" onclick="save_cat_boolean('<? echo $site_id ?>','def_required','<? echo $whatCat ?>','<? echo $x ?>',this)" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> 
+                <input type="checkbox" onclick="save_cat_boolean('<? echo $site_id ?>','hidden_fields','<? echo $whatCat ?>','<? echo $x ?>',this)" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" />
+            </div>
+<?			$x++;
+			}; ?>
+<?			for ($i=1;$i<=5;$i++) { ?>
+        	<div>
+                <input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','option_<? echo $i ?>','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*option_<? echo $i ?>" id="<? echo $whatCat ?>*option_<? echo $i ?>" value="<? echo $row['option_' . $i]; ?>" /> 
+                <input type="text" onchange="save_cat_order ('<? echo $site_id ?>','<? echo $whatCat ?>','<? echo $x ?>',this.value)" name="<? echo $whatCat ?>^<? echo $x ?>" id="<? echo $whatCat ?>^<? echo $x ?>" style="width:30px;" value="<? echo $def_order[$x] ?>" /> 
+                <input type="checkbox" onclick="save_cat_boolean('<? echo $site_id ?>','def_required','<? echo $whatCat ?>','<? echo $x ?>',this)" name="<? echo $whatCat ?>+<? echo $x ?>" id="<? echo $whatCat ?>+<? echo $x ?>" <? if ($def_required[$x] ==1) { ?>checked="checked"<? }; ?> value="1" /> 
+                <input type="checkbox" onclick="save_cat_boolean('<? echo $site_id ?>','hidden_fields','<? echo $whatCat ?>','<? echo $x ?>',this)" name="<? echo $whatCat ?>%<? echo $x ?>" id="<? echo $whatCat ?>%<? echo $x ?>" <? if ($def_hidden[$x] ==1) { ?>checked="checked"<? }; ?> value="1" />
+            </div>
+        	<div>
+                <input onchange="save_cat_def ('<? echo $site_id ?>','catalog_field_def','option_<? echo $i ?>_options','catalog_cat_id','<? echo $whatCat ?>',this.value)" type="text" name="<? echo $whatCat ?>*option_<? echo $i ?>_options" id="<? echo $whatCat ?>*option_<? echo $i ?>_options" value="<? echo $row['option_' . $i . "_options"]; ?>" />
+            </div>
+<?			$x++;
+			}; ?>
+        </div>
+<?		}; ?>
+        <input type="hidden" id="skip_num_cats" name="skip_num_cats" value="<? echo $y ?>" />
+        <div style="clear:both; float:right;"><a href="?site=<? echo $site_id ?>&page=catalog&catalog=<? echo $catalog_id ?>&category=<? echo $category_id ?>" style="padding:3px 10px; color:#FFFFFF; text-decoration:none;"><h3 style="padding:5px 10px; color:#FFFFFF; text-decoration:none; width:75px; text-align:center;">DONE</h3></a></div>
+<?		break;
+	case "uncatagorized": ?>
+        <h2><? echo $catalog_name . " - Uncatagorized Items" ?></h2>
+        <div style="position:relative; margin-bottom:20px; display: none;">
+        	<div style="width:50%; float:left;">
+            	<div style="margin:2px 10px; font-weight:bold; text-align:center; border-bottom:#333 1px solid;">VIEWING OPTIONS:</div>
+                <div>
+                <select name="columns_available" multiple="multiple" style="width:225px; height:300px;">
+<?					unset ($tempArr);
+					$tempArr = array_diff_assoc($fields, $col_view);
+					foreach ($tempArr as $key=>$value) {
+						if ($value['def'] != '') { ?>
+									<option value="<? echo $value['col']; ?>" /><? echo $value['def']; ?></option>
+<?						}; ?>
+<?					}; ?>
+                </select>
+                &nbsp; 
+                <select name="columns_used" multiple="multiple" style="width:225px; height:300px;">
+<?				foreach($col_view as $key => $value) { ?>
+					<option value="<? echo $value['col']; ?>" /><? echo $value['def']; ?></option>
+<?				}; ?>
+                </select>
+                </div>
+            </div>
+        	<div style="width:50%; float:left;">
+            	<div style="margin:2px 10px; font-weight:bold; text-align:center; border-bottom:#333 1px solid;">ORDERING OPTIONS:</div>
+                <div>
+                <select name="columns_available_order" multiple="multiple" style="width:225px; height:300px;">
+<?					unset ($tempArr);
+					$tempArr = array_diff_assoc($fields, $col_order);
+					foreach ($tempArr as $key=>$value) {
+						if ($value['def'] != '') { ?>
+									<option value="<? echo $value['col']; ?>" /><? echo $value['def']; ?></option>
+<?						}; ?>
+<?					}; ?>
+                </select>
+                &nbsp; 
+<?              ksort($col_order); ?>
+                <select name="columns_used_order" multiple="multiple" style="width:225px; height:300px;">
+<?				foreach($col_order as $key => $value) { ?>
+					<option value="<? echo $value['name']; ?>" /><? echo $value['def']; ?></option>
+<?				}; ?>
+                </select>
+                <select name="columns_used_order_direction" multiple="multiple" style="width:35px; height:300px;">
+<?				foreach($col_order as $key => $value) { ?>
+					<option value="<? echo $value['name']; ?>" /><? echo $value['order']; ?></option>
+<?				}; ?>
+                </select>
+                </div>
+            </div>
+        </div>
+        <div style="text-align:right;"><a href="?site=<? echo $site_id ?>&page=catalog&catalog=<? echo $catalog_id ?>&category=<? echo $category_id ?>&action=add_item"><img src="/images/add.png" style="height:30px;" /></a></div>
+        <div>&nbsp;</div>
+        <table style="width:100%; font-size:12px; border-collapse: separate; border-spacing: 5px;">
+        	<tr>
+            	<td style="font-weight:bold; border-bottom:2px #333 solid; text-align:center; width:80px;">&nbsp;</td>
+<?				foreach($col_view as $key => $value) { ?>
+					<td style="font-weight:bold; border-bottom:2px #333 solid; text-align:center;padding:2px 4px;"><? echo $value['def']; ?></td>
+<?				}; ?>
+			</tr>
+<?		$strSQL = "SELECT *, catalog_items.item_id AS item_id FROM catalog_items LEFT JOIN (SELECT catalog_item_cat_link.catalog_cat_id, catalog_id, item_id FROM catalog_item_cat_link INNER JOIN catalog_categories ON catalog_categories.catalog_cat_id = catalog_item_cat_link.catalog_cat_id) AS categories ON categories.item_id = catalog_items.item_id WHERE isnull(categories.catalog_cat_id) AND catalog_items.catalog_id = " . $catalog_id . " ORDER BY catalog_items.date_mod DESC;";
+		$rs = mysqli_query($con, $strSQL);
+		$evenORodd = "odd";
+        while ($row = mysqli_fetch_array($rs)) {
+			if ($evenORodd == "even") {
+				$styleadd = "background:#f4f4f4;";
+				$evenORodd = "odd";
+			} else {
+				$styleadd = "";
+				$evenORodd = "even";
+			}; ?>
+        	<tr>
+            	<td style="<? echo $styleadd ?>">
+                    <a href="?site=<? echo $site_id ?>&page=catalog&catalog=<? echo $catalog_id ?>&category=<? echo $category_id ?>&action=delete_item&item=<? echo $row['item_id'] ?>" onclick="return confirm('Are you sure you want to delete this item?')"><img src="/images/delete.png" style="height:24px; float:right; margin-left:4px;" /></a>
+                	<a href="?site=<? echo $site_id ?>&page=catalog&catalog=<? echo $catalog_id ?>&category=<? echo $category_id ?>&action=edit_item&item=<? echo $row['item_id'] ?>"><img src="/images/edit.png" style="height:24px; float:right; margin-left:4px;"" /></a>
+                	<a href="?site=<? echo $site_id ?>&page=catalog&catalog=<? echo $catalog_id ?>&category=<? echo $category_id ?>&action=images&item=<? echo $row['item_id'] ?>"><img src="/images/images.png" style="height:24px; float:right;" /></a>
+                </td>
+<?				foreach($col_view as $key => $value) {
+					switch ($value['type']) {
+						case 'text': ?>
+							<td style="<? echo $styleadd ?>padding:2px 4px;"><? echo $row[$value['col']] ?></td>
+<?							break;
+						case 'date':
+							$date = date('m-d-Y g:i:s'); ?>
+							<td style="<? echo $styleadd ?>padding:2px 4px;"><? echo date('n/j/Y', strtotime($row[$value['col']])) ?></td>
+<?							break;
+						case 'checkbox': ?>
+							<td style="<? echo $styleadd ?>padding:2px 4px; text-align:center;">
+<?								if ($row[$value['col']] == 1) { ?>
+									<img src="/images/check_2.png" style="height:20px;" />
+<?								} else { ?>
+									<img src="/images/check_1.png" style="height:20px;" />
+<?								}; ?>
+                            </td>
+<?							break;
+						case 'date': ?>
+<?					}; ?>
+<?				}; ?>
+			</tr>
+<?		}; ?>
+        </table>
+<?		break;
+	case "images":
+	case "order_images":
+	case "delete_image":
+	case "upload_images":
+		switch ($_GET['action']) {
+		case 'upload_images':
+			$allowedExts = array("gif", "jpeg", "jpg", "png", "JPG", "GIF", "JPEG", "PNG");
+			foreach ($_FILES["image"]["error"] as $key => $error) {
+				if ($error == 0) {
+					// $_FILES["image"]["size"][$key] is in Byte form
+					// $_FILES["image"]["size"][$key]/1024 puts it in KB form
+					// ($_FILES["image"]["size"][$key]/1024)/1024 puts it in MB form
+					$temp = explode(".", $_FILES["image"]["name"][$key]);
+					$extension = end($temp);
+					if ((($_FILES["image"]["type"][$key] == "image/gif")
+					|| ($_FILES["image"]["type"][$key] == "image/jpeg")
+					|| ($_FILES["image"]["type"][$key] == "image/jpg")
+					|| ($_FILES["image"]["type"][$key] == "image/png"))
+					&& (($_FILES["image"]["size"][$key]/1024)/1024 < 3)
+					&& in_array($extension, $allowedExts)) {
+						if ($_FILES["image"]["error"][$key] > 0) {
+							echo "Return Code: " . $_FILES["image"]["error"][$key] . "<br>";
+						} else {
+							require_once($_SERVER['DOCUMENT_ROOT'] . "/script/image_resize.php");
+							//echo "Upload: " . $_FILES["image"]["name"][$key] . "<br>";
+							//echo "Type: " . $_FILES["image"]["type"][$key] . "<br>";
+							//echo "Size: " . ($_FILES["image"]["size"][$key] / 1024) . " kB<br>";
+							//echo "Temp file: " . $_FILES["image"]["tmp_name"][$key] . "<br>";
+							$imagesize = getimagesize($_FILES["image"]["tmp_name"][$key]);
+							//echo "Dimensions: ";
+							//print_r($imagesize);
+							//echo "<br>";
+							$num = 1;
+							$num_str = "001";
+							while (file_exists($_SERVER['DOCUMENT_ROOT'] . "/catalog_images/catalog_item(" . $_GET['item'] . ")_" . $num_str . "." . $extension) == true) {
+								$num++;
+								$num_str = "";
+								for ($x=1;$x<=3-strlen($num);$x++) {
+									$num_str .= "0";
+								};
+								$num_str .= $num;
+							}
+							
+							//indicate which file to resize (can be any type jpg/png/gif/etc...)
+							$file = $_FILES["image"]["tmp_name"][$key];
+							//indicate the path and name for the new resized file
+							$resizedFile = $_SERVER['DOCUMENT_ROOT'] . "/catalog_images/catalog_item(" . $_GET['item'] . ")_" . $num_str . "_thumb." . $extension;
+							smart_resize_image($file , 200 , 200 , true , $resizedFile , false , false ,100 );
+							//call the function
+							$strSQL = "SELECT * FROM catalog_item_images_dimensions WHERE catalog_id = " . $catalog_id;
+							$rs = mysqli_query($con,$strSQL);
+							while ($row = mysqli_fetch_array($rs)) {
+								$label = "";
+								if ($row['label'] != '')
+									$label = "_" . $row['label'];
+								$resizedFile = $_SERVER['DOCUMENT_ROOT'] . "/catalog_images/catalog_item(" . $_GET['item'] . ")_" . $num_str . $label . "." . $extension;
+								smart_resize_image($file , $row['width'] , $row['height'] , true , $resizedFile , false , false ,100 );
+							};
+							
+							move_uploaded_file($_FILES["image"]["tmp_name"][$key],$_SERVER['DOCUMENT_ROOT'] . "/catalog_images/catalog_item(" . $_GET['item'] . ")_" . $num_str . "." . $extension);
+							if (file_exists($_SERVER['DOCUMENT_ROOT'] . "/catalog_images/catalog_item(" . $_GET['item'] . ")_" . $num_str . "." . $extension)) {
+								$img_name = "catalog_item(" . $_GET['item'] . ")_" . $num_str;
+								$img_type = $extension;
+								$img_height = $imagesize[1];
+								$img_width = $imagesize[0];
+								$img_item = $_GET['item'];
+								$img_meme = $_FILES["image"]["type"][$key];
+								$img_thumb = "catalog_item(" . $_GET['item'] . ")_" . $num_str . "_thumb." . $extension;
+								$strSQL = "SELECT image_order FROM catalog_item_images WHERE item_id = " . $img_item . " ORDER BY image_order DESC LIMIT 1";
+								$rs = mysqli_query($con, $strSQL);
+								while ($row = mysqli_fetch_array($rs)) {
+									$last_num = $row['image_order'];
+								};
+								$strSQL = "INSERT INTO catalog_item_images (item_id, image_name, image_meme, image_height, image_width, image_type, image_order) VALUES (" . $img_item . ",'" . $img_name . "','" . $img_meme . "'," . $img_height . "," . $img_width . ",'" . $img_type . "'," . ($last_num + 1) . ");";
+								mysqli_query($con, $strSQL);
+							}; ?>
+                            <div class="ui-widget">
+                                <div class="ui-state-highlight ui-corner-all" style="margin-bottom: 20px; padding: 0 .7em;">
+                                    <p><span class="ui-icon ui-icon-info" style="float: left; margin-right: .3em;"></span>
+                                    <strong>Success!</strong> Image has been added.</p>
+                                </div>
+                            </div>
+<?						};
+					} else {
+						if (($_FILES["image"]["size"][$key]/1024)/1024 > 3) {?>
+                        <div class="ui-widget">
+                            <div class="ui-state-error ui-corner-all" style="margin-bottom: 20px; padding: 0 .7em;">
+                                <p><span class="ui-icon ui-icon-alert" style="float: left; margin-right: .3em;"></span>
+                                <strong>Warning:</strong> File size is too big.</p>
+                            </div>
+                        </div>
+<?						};
+						if (!in_array($extension, $allowedExts)) { ?>
+                        <div class="ui-widget">
+                            <div class="ui-state-error ui-corner-all" style="margin-bottom: 20px; padding: 0 .7em;">
+                                <p><span class="ui-icon ui-icon-alert" style="float: left; margin-right: .3em;"></span>
+                                <strong>Warning:</strong> File type not allowed.</p>
+                            </div>
+                        </div>
+<?						};
+						if (($_FILES["image"]["type"][$key] != "image/gif")
+						&& ($_FILES["image"]["type"][$key] != "image/jpeg")
+						&& ($_FILES["image"]["type"][$key] != "image/jpg")
+						&& ($_FILES["image"]["type"][$key] != "image/png")) { ?>
+                        <div class="ui-widget">
+                            <div class="ui-state-error ui-corner-all" style="margin-bottom: 20px; padding: 0 .7em;">
+                                <p><span class="ui-icon ui-icon-alert" style="float: left; margin-right: .3em;"></span>
+                                <strong>Warning:</strong> File type of '<? echo $_FILES["image"]["type"][$key] ?>' is not allowed.</p>
+                            </div>
+                        </div>
+<?						};
+					};
+				};
+			};
+			break;
+		case 'order_images':
+			foreach ($_POST as $key=>$value) {
+				if (strpos($key,'_order') > 0) {
+					$image = str_replace('_order','',$key);
+					$strSQL = "UPDATE catalog_item_images SET image_order = " . $value . " WHERE image_id = " . $image . ";";
+					mysqli_query($con, $strSQL);
+				};
+			};
+			break;
+		case 'delete_image':
+				$strSQL = "SELECT * FROM catalog_item_images WHERE image_id = " . $_GET['id'];
+				$rs = mysqli_query($con, $strSQL);
+				while ($row = mysqli_fetch_array($rs)) {
+					$image_name = $row['image_name'];
+					$extension = $row['image_type'];
+				};
+				if (file_exists($_SERVER['DOCUMENT_ROOT'] . "/catalog_images/" . $image_name . "_thumb." . $extension)) {
+					@unlink($_SERVER['DOCUMENT_ROOT'] . "/catalog_images/" . $image_name . "_thumb." . $extension);
+				};
+				$strSQL = "SELECT * FROM catalog_item_images_dimensions WHERE catalog_id = " . $catalog_id;
+				$rs = mysqli_query($con,$strSQL);
+				while ($row = mysqli_fetch_array($rs)) {
+					$label = $image_name;
+					if ($row['label'] != '')
+						$label = $image_name . "_" . $row['label'];
+					if (file_exists($_SERVER['DOCUMENT_ROOT'] . "/catalog_images/" . $label . "." . $extension)) {
+						@unlink($_SERVER['DOCUMENT_ROOT'] . "/catalog_images/" . $label . "." . $extension);
+					};
+				};
+				$strSQL = "DELETE FROM catalog_item_images WHERE image_id = " . $_GET['id'];
+				mysqli_query($con, $strSQL); ?>
+                <div class="ui-widget">
+                    <div class="ui-state-highlight ui-corner-all" style="margin-bottom: 20px; padding: 0 .7em;">
+                        <p><span class="ui-icon ui-icon-info" style="float: left; margin-right: .3em;"></span>
+                        <strong>Success!</strong> Image has been deleted.</p>
+                    </div>
+                </div>
+<?			break;
+		}; ?>
+<?		$strSQL = "SELECT * FROM catalog_items WHERE item_id = " . $_GET['item'] . ";";
+		$rs = mysqli_query($con, $strSQL);
+		while ($row = mysqli_fetch_array($rs)) {
+			$item_title = $row['item_title'];
+		}; ?>
+        <h2><? echo $catalog_name . " - " . $cat_tree_names . " - " . $item_title . " | IMAGES"; ?></h2>
+        <div>&nbsp;</div>
+<?		if ($_GET['new'] == 'new') { ?>
+		<div style="text-align:right;"><input type="button" onclick="javascript: window.location = '/site/phpindex.php?site=<? echo $site_id ?>&page=catalog&new=new&catalog=<? echo $catalog_id ?>&category=<? echo $category_id ?>&action=add_item';" value="+ &nbsp; add another" /></div>
+        <div>&nbsp;</div>
+<?		}; ?>
+        <div id="catalog_pics">
+        <div class="catalog_image_div">
+		<script>
+			function addinput() {
+				container = document.getElementById("container");
+                var input = document.createElement("input");
+                input.type = "file";
+                input.name = "image[]";
+				input.style.width = "180px";
+                container.appendChild(input);
+                // Append a line break 
+                container.appendChild(document.createElement("br"));
+			};
+			function hoverImage(id,radius) {
+				element = document.getElementById(id + '_tools');
+				element.style['display'] = 'block';//Future standard
+			};
+			function hoverImageOut(id,radius) {
+				element = document.getElementById(id + '_tools');
+				element.style['display'] = 'none';//Future standard
+			};
+		</script>
+<?		if ($_GET['new'] == 'new') { ?>
+        <form action="?site=<? echo $site_id ?>&page=catalog&new=new&catalog=<? echo $catalog_id ?>&category=<? echo $category_id ?>&action=upload_images&item=<? echo $_GET['item'] ?>" method="post" enctype="multipart/form-data" style="display:inline; margin:auto; text-align:left;">
+<?		} else { ?>
+        <form action="?site=<? echo $site_id ?>&page=catalog&catalog=<? echo $catalog_id ?>&category=<? echo $category_id ?>&action=upload_images&item=<? echo $_GET['item'] ?>" method="post" enctype="multipart/form-data" style="display:inline; margin:auto; text-align:left;">
+<?		}; ?>
+          <h5>Upload Images:</h5>
+          <div id="container">
+          <input name="image[]" type="file" style="width:180px;" /><br />
+          </div>
+          <div>&nbsp;</div>
+          <div style="text-align:right;">
+          	upload more &nbsp; <a href="javascript: void(0);" onclick="addinput()"><img src="/images/add.png" style="height:25px; float:right; margin-top:-5px;" /></a>
+          </div>
+          <div class="catalog_image_attr">
+          <input type="submit" value=" upload " />
+          </div>
+        </form>
+        </div>
+<?		if ($_GET['new'] == 'new') { ?>
+        <form action="?site=<? echo $site_id ?>&page=catalog&new=new&catalog=<? echo $catalog_id ?>&category=<? echo $category_id ?>&action=order_images&item=<? echo $_GET['item'] ?>" method="post" style="display:inline; margin:auto; text-align:left;"> 
+<?		} else { ?>
+        <form action="?site=<? echo $site_id ?>&page=catalog&catalog=<? echo $catalog_id ?>&category=<? echo $category_id ?>&action=order_images&item=<? echo $_GET['item'] ?>" method="post" style="display:inline; margin:auto; text-align:left;"> 
+<?		}; ?>
+<?		$strSQL = "SELECT * FROM catalog_item_images WHERE item_id = " . $_GET['item'] . " ORDER BY image_order ASC;";
+		$rs = mysqli_query($con, $strSQL);
+		while ($row = mysqli_fetch_array($rs)) { ?>
+        	<div id="<? echo $row['image_id'] ?>" class="catalog_image_div" onmouseover="javascript: setTimeout(hoverImage(<? echo $row['image_id'] ?>,100),100)" onmouseout="javascript: hoverImageOut(<? echo $row['image_id'] ?>,100)" >
+            	<div id="<? echo $row['image_id'] ?>_tools" class="catalog_image_tools">
+                	<a href="/catalog_images/<? echo $row['image_name'] ?>.<? echo $row['image_type'] ?>" target="_blank" rel="shadowbox"><img src="/images/view.png" style="height:25px; border:0px;" /></a>
+                	<a href="#"><img src="/images/edit.png" style="height:25px; border:0px;" /></a>
+                	<a href="?site=<? echo $site_id ?>&page=catalog&catalog=<? echo $catalog_id ?>&category=<? echo $category_id ?>&action=delete_image&item=<? echo $_GET['item'] ?>&id=<? echo $row['image_id'] ?>" onclick="return confirm('Are you sure you want to delete this image?')"><img src="/images/delete.png" style="height:25px; border:0px;" /></a>
+                </div>
+            	<img class="img" id="<? echo $row['image_id'] ?>_img" src="/catalog_images/<? echo $row['image_name'] ?>_thumb.<? echo $row['image_type'] ?>" class="catalog_image" />
+                <div id="<? echo $row['image_id'] ?>_attr" class="catalog_image_attr">
+                	<input type="text" name="<? echo $row['image_id'] ?>_order" id="<? echo $row['image_id'] ?>_order" style="border:0px; width:50px; padding:2px 5px; text-align:center; border-radius:3px;" value="<? echo $row['image_order'] ?>" />
+                    <input type="submit" value=" &#8635; " style="font-size:20px;" />
+                </div>
+            </div>
+<?		}; ?>
+		</form>
+		</div>
+<?		break;
+	default: ?>
+        <h2><? echo $catalog_name . " - " . $cat_tree_names; ?></h2>
+		<script  type="text/javascript">
+        /*<![CDATA[*/
+        
+        function Move(from,to){
+			 from = document.getElementById(from);
+			 element = from.options[from.selectedIndex].cloneNode(true);
+			 from.removeChild(from.options[from.selectedIndex]);
+			 document.getElementById(to).appendChild(element);
+        };
+        function Move2(from,to){
+			 from = document.getElementById(from);
+			 element = from.options[from.selectedIndex].cloneNode(true)
+			 index = from.options[from.selectedIndex].index;
+			 
+			 dir = document.getElementById('columns_used_order_direction');
+			 if (to == 'columns_used_order') {
+				var o = document.createElement("option");
+				o.value = "ASC";
+				o.text = "ASC";
+				dir.appendChild(o);
+			 } else {
+				//alert ('FROM: ' + index + '\nINDEX: ' + dir.options[index].index + '\nTEXT: ' + dir.childNodes[index].text + '\nVALUE: ' + dir.childNodes[index].value );
+				dir.removeChild(dir.options[index]);
+			 };
+			 
+			 from.removeChild(from.options[from.selectedIndex]);
+			 document.getElementById(to).appendChild(element);
+        };
+        function AscDesc(child) {
+			if (child.value == 'ASC') {
+				child.value = 'DESC';
+				child.text = 'DESC';
+			} else {
+				child.value = 'ASC';
+				child.text = 'ASC';
+			};
+        };
+		function selectall () {
+			length = document.getElementById("columns_used").options.length;
+			for (var i = 0;i<length;i++) {
+				document.getElementById("columns_used").options[i].selected = "selected";
+			};
+			length = document.getElementById("columns_used_order").options.length;
+			for (var i = 0;i<length;i++) {
+				document.getElementById("columns_used_order").options[i].selected = "selected";
+			};
+			length = document.getElementById("columns_used_order_direction").options.length;
+			for (var i = 0;i<length;i++) {
+				document.getElementById("columns_used_order_direction").options[i].selected = "selected";
+			};
+			return true;
+		};
+		
+		$(document).ready(function(){
+			$( "#toggle_preferences" ).click(function() {
+			  $( "#preferences" ).slideToggle( "slow", function() {
+				if ($( "#toggle_preferences" ).text() == "Show Preferences") {
+					$( "#toggle_preferences" ).html("Hide Preferences");
+				} else {
+					$( "#toggle_preferences" ).html("Show Preferences");
+				};
+			  });
+			});
+		});
+        /*]]>*/
+        </script>
+        <div id="preferences" style="position:relative; background:#f5f5f5; text-align:center; border-bottom:1px #999 solid; overflow:hidden; height:370px; display:none;">
+            <form style="display:inline;"  method="post" action="?site=<? echo $site_id ?>&page=catalog&catalog=<? echo $catalog_id ?>&category=<? echo $category_id ?>&action=update_preferences" onsubmit="return selectall();">
+        	<div style="width:50%; float:left; text-align:center;">
+            	<div style="margin:2px 10px; font-weight:bold; text-align:center; border-bottom:#333 1px solid;">VIEWING OPTIONS:</div>
+                <div style="margin:2px 10px;">
+                <select name="columns_available" id="columns_available" multiple style="width:150px; height:300px;" onchange="Move('columns_available','columns_used');">
+<?					foreach ($fields as $key=>$value) {
+						if ($value['def'] != '') {
+							foreach($col_view as $key2=>$value2) {
+								$isFound = false;
+								if ($value2['col'] == $value['col']) {
+									$isFound = true;
+									break;
+								};
+								if($key2 == count($col_view)-1) {
+									if ($isFound == false) { ?>
+										<option value="<? echo $value['col']; ?>*<? echo $value['def']; ?>*<? echo $value['type']; ?>" /><? echo $value['def']; ?></option>
+<?									};
+								};
+							};
+						};
+					}; ?>
+                </select>
+                &nbsp;<span style="font-size:30px;">&#8694;</span>&nbsp;
+                <select name="columns_used[]" id="columns_used" multiple style="width:150px; height:300px;" onchange="Move('columns_used','columns_available');">
+<?				foreach($col_view as $key => $value) { ?>
+					<option value="<? echo $value['col']; ?>*<? echo $value['def']; ?>*<? echo $value['type']; ?>" /><? echo $value['def']; ?></option>
+<?				}; ?>
+                </select>
+                </div>
+            </div>
+        	<div style="width:50%; float:left; text-align:center;">
+            	<div style="margin:2px 10px; font-weight:bold; text-align:center; border-bottom:#333 1px solid;">ORDERING OPTIONS:</div>
+                <div style="margin:2px 10px;">
+                <select name="columns_available_order" id="columns_available_order" multiple style="width:150px; height:300px;" onchange="Move2('columns_available_order','columns_used_order');">
+<?					foreach ($fields as $key=>$value) {
+						if ($value['def'] != '') {
+							foreach($col_order as $key2=>$value2) {
+								$isFound = false;
+								if ($value2['col'] == $value['col']) {
+									$isFound = true;
+									break;
+								};
+								if($key2 == count($col_order)-1) {
+									if ($isFound == false) { ?>
+										<option value="<? echo $value['col']; ?>*<? echo $value['def']; ?>*<? echo $value['type']; ?>" /><? echo $value['def']; ?></option>
+<?									};
+								};
+							};
+						};
+					}; ?>
+                </select>
+                &nbsp;<span style="font-size:30px;">&#8694;</span>&nbsp;
+<?              ksort($col_order); ?>
+                <select name="columns_used_order[]" id="columns_used_order" multiple style="width:150px; height:300px;" onchange="Move2('columns_used_order','columns_available_order');">
+<?				foreach($col_order as $key => $value) { ?>
+					<option value="<? echo $value['col']; ?>*<? echo $value['def']; ?>" /><? echo $value['def']; ?></option>
+<?				}; ?>
+                </select>
+                <select name="columns_used_order_direction[]" id="columns_used_order_direction" multiple style="width:35px; height:300px;" onclick="AscDesc(this.options[this.selectedIndex])">
+<?				foreach($col_order as $key => $value) { ?>
+					<option value="<? echo $value['order']; ?>" /><? echo $value['order']; ?></option>
+<?				}; ?>
+                </select>
+                </div>
+            </div>
+            <div>&nbsp;
+            </div>
+			<input type="submit" value="&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; save preferences &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;" />
+            <div>&nbsp;</div>
+ 			</form>
+        </div>
+        <div id="toggle_preferences" style="display:block;margin:auto; margin-bottom:20px; cursor:pointer; height:15px; width:150px; text-align:center; background:#999; border-bottom-left-radius:8px; border-bottom-right-radius:8px; color:#FFFFFF; padding: 2px 0px 0px 0px; text-transform:uppercase; font-size:10px;">Show Preferences</div>
+        <div style="text-align:right;"><a href="?site=<? echo $site_id ?>&page=catalog&catalog=<? echo $catalog_id ?>&category=<? echo $category_id ?>&action=add_item"><img src="/images/add.png" style="height:30px;" /></a></div>
+        <div>&nbsp;</div>
+        <table style="width:100%; font-size:12px; border-collapse: separate; border-spacing: 5px;">
+        	<tr>
+            	<td style="font-weight:bold; border-bottom:2px #333 solid; text-align:center; width:80px;">&nbsp;</td>
+                <? if ($options[0] == 1) { ?>
+            	<td style="font-weight:bold; border-bottom:2px #333 solid; text-align:center;">&nbsp;</td>
+                <? }; ?>
+<?				foreach($col_view as $key => $value) { ?>
+					<td style="font-weight:bold; border-bottom:2px #333 solid; text-align:center;padding:2px 4px;"><? echo $value['def']; ?></td>
+<?				}; ?>
+			</tr>
+<?		$strSQL = "SELECT catalog_cat_id FROM catalog_categories WHERE catalog_cat_parent = " . $category_id;
+		$rs = mysqli_query($con,$strSQL);
+		$sub_cats = "";
+		while ($row = mysqli_fetch_array($rs)) {
+			if ($sub_cats != "")
+				$sub_cats .= " OR ";
+			$sub_cats .= "catalog_item_cat_link.catalog_cat_id = " . $row['catalog_cat_id'];
+		};
+		if ($sub_cats != "")
+			$sub_cats = " OR (" . $sub_cats . ")";
+		$query = "";
+		foreach ($col_order as $key=>$value) {
+			$query .= "catalog_items." . $value['col'] .  " " . $value['order'] . ", ";
+		};
+		$query = substr($query, 0, -2);
+		$strSQL = "SELECT *, catalog_items.item_id AS item_id FROM catalog_item_cat_link INNER JOIN catalog_items ON catalog_item_cat_link.item_id = catalog_items.item_id LEFT JOIN (SELECT * FROM catalog_item_images ORDER BY image_order ASC) AS images ON images.item_id = catalog_items.item_id WHERE catalog_item_cat_link.catalog_cat_id = " . $category_id . $sub_cats . " GROUP BY catalog_items.item_id ORDER BY " . $query . ";";
+		$rs = mysqli_query($con, $strSQL);
+		$evenORodd = "odd";
+        while ($row = mysqli_fetch_array($rs)) {
+			if ($evenORodd == "even") {
+				$styleadd = "background:#f4f4f4;";
+				$evenORodd = "odd";
+			} else {
+				$styleadd = "";
+				$evenORodd = "even";
+			}; ?>
+        	<tr>
+            	<td style="<? echo $styleadd ?>">
+                    <a href="?site=<? echo $site_id ?>&page=catalog&catalog=<? echo $catalog_id ?>&category=<? echo $category_id ?>&action=delete_item&item=<? echo $row['item_id'] ?>" onclick="return confirm('Are you sure you want to delete this item?')"><img src="/images/delete.png" style="height:24px; float:right; margin-left:4px;" /></a>
+                	<a href="?site=<? echo $site_id ?>&page=catalog&catalog=<? echo $catalog_id ?>&category=<? echo $category_id ?>&action=edit_item&item=<? echo $row['item_id'] ?>"><img src="/images/edit.png" style="height:24px; float:right; margin-left:4px;"" /></a>
+                	<? if ($options[0] == 1) { ?><a href="?site=<? echo $site_id ?>&page=catalog&catalog=<? echo $catalog_id ?>&category=<? echo $category_id ?>&action=images&item=<? echo $row['item_id'] ?>"><img src="/images/images.png" style="height:24px; float:right;" /></a><? }; ?>
+                </td>
+                <? if ($options[0] == 1) { ?>
+                <td style="width:10px; text-align:center;<? echo $styleadd ?>">
+                <? if ($row['image_name'] != "") { ?>
+                	<img src="/catalog_images/<? echo $row['image_name'] . "_thumb." . $row['image_type'] ?>" style="height:50px;" />
+                <? } else { ?>
+                	&nbsp;
+                <? }; ?>
+                </td>
+                <? }; ?>
+<?				foreach($col_view as $key => $value) {
+					switch ($value['type']) {
+						case 'text':
+						case 'longtext':
+						case 'option': ?>
+							<td style="<? echo $styleadd ?>padding:2px 4px;"><? echo $row[$value['col']] ?></td>
+<?							break;
+						case 'currency': ?>
+							<td style="<? echo $styleadd ?>padding:2px 4px;">$<? echo number_format($row[$value['col']]) ?></td>
+<?							break;
+						case 'integer':
+						case 'double': ?>
+							<td style="<? echo $styleadd ?>padding:2px 4px;"><? echo number_format($row[$value['col']]) ?></td>
+<?							break;
+						case 'date':
+							$date = date('m-d-Y g:i:s'); ?>
+							<td style="<? echo $styleadd ?>padding:2px 4px;"><? echo date('n/j/Y', strtotime($row[$value['col']])) ?></td>
+<?							break;
+						case 'checkbox': ?>
+							<td style="<? echo $styleadd ?>padding:2px 4px; text-align:center;">
+<?								if ($row[$value['col']] == 1) { ?>
+									<img src="/images/check_2.png" style="height:20px;" />
+<?								} else { ?>
+									<img src="/images/check_1.png" style="height:20px;" />
+<?								}; ?>
+                            </td>
+<?							break;
+						default: ?>
+							<td style="<? echo $styleadd ?>padding:2px 4px;"><? echo $row[$value['col']] ?></td>
+<?					}; ?>
+<?				}; ?>
+			</tr>
+<?		}; ?>
+        </table>
+<? };
+
+?>
+</tr>
+</table>
+
+
+
+<?
+// __________________________________________________________________________________________________________
+// ______________ END PAGE CONTENT __________________________________________________________________________
+// __________________________________________________________________________________________________________
+
+
+			}; ?>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- footer -->
+<? include ($_SERVER['DOCUMENT_ROOT'] . '/templates/footer.php'); ?>
