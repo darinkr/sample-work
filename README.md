@@ -6,7 +6,7 @@ Code samples from projects I have worked on.
 
 ==========================================
 
-The files here are all code samples from various projects that I have worked on throughout the years.  Some of these samples are executable and labled as so, and others are not.
+The files here are all code samples from various projects that I have worked on throughout the years.  Some of these samples are executable and labeled as so, and others are not.
  
  
 Sample 1: PHP URL Re-write custom error page (non-executable)
@@ -19,4 +19,4 @@ Sample 2:  Catalog Management Page (non-executable)
 
 Sample 3:  E-mail Siginture Generator (executable and viewable at http://cpemail.missioncheckin.com)
 
-   This sample is a one page e-mail signiture generator made for Cross Point Church here in Nashville.  Staff members can go on there and put in thier own information to create the e-mail signiture to copy and paiste into their favorite mail client.  The page has standard links to general Cross Point social media pages unless the staff member enters their own.  It is all done live via javascript.
+   This sample is a one page e-mail signiture generator made for Cross Point Church here in Nashville.  Staff members can go on there and put in thier own information to create the e-mail signiture to copy and paste into their favorite mail client.  The page has standard links to general Cross Point social media pages unless the staff member enters their own.  It is all done live via javascript.
